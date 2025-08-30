@@ -1,0 +1,37 @@
+.container {padding: 24rpx; background: #f7f9fa; min-height: 100vh;}
+.type-bar {display:flex;gap:12rpx;margin-bottom:18rpx;}
+.type-btn {background:#e7f1ff;padding:16rpx 0;border-radius:10rpx;font-size:28rpx;width:40vw;}
+.type-btn.active {background:#4b6cff;color:#fff;font-weight:bold;}
+.date-bar {display:flex;gap:10rpx;margin-bottom:14rpx;white-space:nowrap;}
+.date-btn {background:#e7f1ff;padding:10rpx 18rpx;border-radius:8rpx;font-size:26rpx;display:inline-block;}
+.date-btn.active {background:#4b6cff;color:#fff;}
+.lessons-title {font-size:28rpx;font-weight:bold;color:#4b6cff;margin-bottom:18rpx;}
+.lesson-list {margin-top:12rpx;}
+.lesson-card {
+  background:#fff;
+  border-radius:12rpx;
+  box-shadow:0 2rpx 8rpx rgba(76,108,255,0.06);
+  padding:18rpx 18rpx 12rpx 18rpx;
+  margin-bottom:18rpx;
+  position:relative;
+}
+.lesson-time {font-size:26rpx;color:#3152c0;margin-bottom:10rpx;}
+.lesson-info {font-size:24rpx;color:#444;margin-bottom:4rpx;display:flex;align-items:center;}
+.lesson-label {color:#8aa2fa;width:80rpx;}
+.student-list {display:flex;flex-wrap:wrap;gap:10rpx;}
+.student-name {background:#e7f1ff;padding:6rpx 18rpx;border-radius:8rpx;font-size:22rpx;color:#4b6cff;}
+.cancel-btn {
+  margin-left:8rpx;
+  background:#fff;
+  color:#ff4b4b;
+  border:1rpx solid #ff4b4b;
+  border-radius:8rpx;
+  font-size:22rpx;
+  padding: 6rpx 18rpx;
+}
+.empty-tip {
+  color:#999;
+  text-align:left;
+  margin-left:10rpx;
+  font-size:22rpx;
+}

@@ -1,0 +1,52 @@
+<view class="container">
+  <view class="week-bar">
+    <view>本周起始：{{weekStart}}</view>
+    <button bindtap="saveSchedule" class="save-btn">保存课表</button>
+  </view>
+  <view class="days-bar">
+    <block wx:for="{{courses}}" wx:key="index">
+      <view class="day-item {{selectedDate==item.date && selectedType==item.type?'active':''}}"
+        bindtap="selectDateType"
+        data-date="{{item.date}}" data-type="{{item.type}}">
+        <text>{{item.date}}</text>
+        <text>{{item.type=='group'?'团课':'私教'}}</text>
+      </view>
+    </block>
+  </view>
+  <view wx:if="{{selectedDate}}">
+  <view class="edit-title">{{selectedDate}} {{selectedType=='group'?'团课':'私教'}}课表</view>
+  <scroll-view style="max-height: 400rpx;">
+    <!-- 只遍历当前选中项的 lessons -->
+    <block wx:for="{{getCurrentLessons(courses, selectedDate, selectedType)}}" wx:key="index">
+      <view class="lesson-row">
+        <view>时间：{{item.startTime}} - {{item.endTime}}</view>
+        <view>老师：{{item.teacher}}</view>
+        <view>内容：{{item.content}}</view>
+        <view>人数：{{item.bookedCount}}/{{item.maxCount}}</view>
+        <button size="mini" data-date="{{selectedDate}}" data-type="{{selectedType}}" data-index="{{index}}" bindtap="onDeleteLesson">删除</button>
+        <button size="mini" data-date="{{selectedDate}}" data-type="{{selectedType}}" data-index="{{index}}" bindtap="viewBookings">预约名单</button>
+      </view>
+    </block>
+  </scroll-view>
+  <!-- 录入区不变 -->
+  <view class="lesson-form">
+    <picker mode="selector" range="{{hours}}" bindchange="onPickerChange" data-field="startHour">
+      <view class="picker-text">开始小时：{{editingLesson.startHour}}</view>
+    </picker>
+    <picker mode="selector" range="{{minutes}}" bindchange="onPickerChange" data-field="startMinute">
+      <view class="picker-text">开始分钟：{{editingLesson.startMinute}}</view>
+    </picker>
+    <picker mode="selector" range="{{hours}}" bindchange="onPickerChange" data-field="endHour">
+      <view class="picker-text">结束小时：{{editingLesson.endHour}}</view>
+    </picker>
+    <picker mode="selector" range="{{minutes}}" bindchange="onPickerChange" data-field="endMinute">
+      <view class="picker-text">结束分钟：{{editingLesson.endMinute}}</view>
+    </picker>
+    <input class="input" placeholder="老师" bindinput="onLessonFieldInput" data-field="teacher" value="{{editingLesson.teacher}}" />
+    <input class="input" placeholder="课程内容" bindinput="onLessonFieldInput" data-field="content" value="{{editingLesson.content}}" />
+    <input class="input" type="number" placeholder="最少人数" bindinput="onLessonFieldInput" data-field="minCount" value="{{editingLesson.minCount}}"/>
+    <input class="input" type="number" placeholder="最多人数" bindinput="onLessonFieldInput" data-field="maxCount" value="{{editingLesson.maxCount}}"/>
+    <button class="add-btn" bindtap="addLesson">新增课程</button>
+  </view>
+</view>
+</view>

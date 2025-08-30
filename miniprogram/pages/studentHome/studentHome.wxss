@@ -1,0 +1,136 @@
+/* pages/studentHome/studentHome.wxss */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+/* Swiper Styles */
+swiper {
+  width: 100%;
+  height: 400rpx; /* Adjust as needed */
+}
+
+swiper image {
+  width: 100%;
+  height: 100%;
+}
+
+.company-info {
+  width: 100%;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+.company-info .company-name {
+  font-size: 38rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.company-info .address {
+  display: flex;
+  align-items: center;
+  font-size: 30rpx;
+  color: #666;
+}
+
+.company-info .address .icon {
+  width: 30rpx;
+  height: 30rpx;
+  margin-left: 10rpx;
+}
+.quick-actions {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+.icon-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: none;
+  border: none;
+}
+.icon-img {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 10rpx;
+}
+.quick-actions .action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quick-actions .action-item image {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 10rpx;
+}
+
+.quick-actions .action-item text {
+  font-size: 30rpx;
+}
+
+/* Teachers Section */
+.teachers-section {
+  width: 100%;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+.teachers-section .section-title {
+  font-size: 35rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  display: flex;
+  justify-content: space-between;
+}
+
+.teachers-section .teachers-scroll {
+  white-space: nowrap;
+}
+
+.teachers-section .teacher-item {
+  display: inline-table;
+  flex-direction: column;
+  align-items: center;
+
+  margin-right: 80rpx;
+  width: 100rpx;
+}
+
+.teachers-section .teacher-item image {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 60%;
+  margin-bottom: 20rpx;
+  justify-content: space-between;
+}
+
+.teachers-section .teacher-item text {
+  text-align: center;
+  font-size: 30rpx;
+}
+
+/* About Us Section */
+.about-us {
+  width: 100%;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+.about-us .section-title {
+  font-size: 35rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.about-us .contact-info {
+  font-size: 30rpx;
+  color: #666;
+}

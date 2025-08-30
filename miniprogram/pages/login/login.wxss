@@ -1,0 +1,26 @@
+/* pages/login/login.wxss */
+/* pages/login/login.wxss */
+.login-bg {
+  width: 100vw; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+}
+.login-box {
+  background: #fff; border-radius: 18rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.09);
+  padding: 60rpx 40rpx; width: 80vw; max-width: 560rpx;
+  display: flex; flex-direction: column; align-items: center;
+}
+.logo { width: 120rpx; height: 120rpx; margin-bottom: 32rpx; border-radius: 60rpx; }
+.title { font-size: 36rpx; font-weight: bold; margin-bottom: 48rpx; color: #ff8c42; }
+.input {
+  width: 100%; margin-bottom: 32rpx; padding: 18rpx 24rpx;
+  border-radius: 10rpx; border: 1rpx solid #eee;
+  font-size: 28rpx; background: #f9f9f9;
+}
+.login-btn {
+  width: 100%; height: 80rpx; background: linear-gradient(90deg, #f6d365, #fda085);
+  color: #fff; font-size: 32rpx; border-radius: 12rpx; font-weight: bold;
+  border: none; margin-top: 12rpx;
+  box-shadow: 0 4rpx 16rpx rgba(253,160,133,0.12);
+}

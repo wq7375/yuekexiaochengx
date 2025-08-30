@@ -1,0 +1,50 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/index/index",
+    "pages/studentHome/studentHome",
+    "pages/yueke/yueke",
+    "pages/my/my",
+    "pages/adminHome/adminHome",
+    "pages/admin/bannerManage/bannerManage",
+    "pages/admin/teacherManage/teacherManage",
+    "pages/admin/courseManage/courseManage",
+    "pages/admin/studentManage/studentManage",
+    "pages/admin/schedules/schedules"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "姿美知音",
+    "navigationBarBackgroundColor": "#ffffff",
+    "enablePullDownRefresh": true,
+    "backgroundColor": "#00000F",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "selectedColor": "#b4282d",
+    "position": "bottom",
+    "list": [
+      {
+        "pagePath": "pages/studentHome/studentHome",
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home_select.png"
+      },
+      {
+        "pagePath": "pages/yueke/yueke",
+        "text": "约课",
+        "iconPath": "images/yueke.png",
+        "selectedIconPath": "images/yueke_select.png"
+      },
+      {
+        "pagePath": "pages/my/my",
+        "text": "我的",
+        "iconPath": "images/my.png",
+        "selectedIconPath": "images/my_select.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

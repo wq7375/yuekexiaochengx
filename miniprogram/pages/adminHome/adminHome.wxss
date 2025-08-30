@@ -1,0 +1,31 @@
+/* pages/adminHome/adminHome.wxss */
+.admin-home-bg { min-height: 100vh; background: #f7f5fb; padding: 0 32rpx; }
+.admin-title { font-size: 44rpx; font-weight: bold; color: #ff8c42; margin: 48rpx 0 36rpx 0; text-align: center;}
+.card-list { display: flex; flex-wrap: wrap; justify-content: space-between; }
+
+.icon-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+}
+.icon-img {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 10rpx;
+}
+.card-list .action-item {
+  width: 46vw; margin-bottom: 36rpx;
+  background: #fff; border-radius: 18rpx;
+  box-shadow: 0 6rpx 24rpx rgba(0,0,0,0.08);
+  padding: 48rpx 0 28rpx 0; display: flex; flex-direction: column; align-items: center;
+}
+
+.card-list .action-item image {
+  width: 72rpx; height: 72rpx; 
+}
+
+.card-list .action-item text {
+  font-size: 30rpx; margin-top: 18rpx; color: #333;
+}

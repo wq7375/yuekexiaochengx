@@ -1,0 +1,10 @@
+<!--pages/login/login.wxml-->
+<!--pages/login/login.wxml-->
+<view class="login-bg">
+  <view class="login-box">
+    <view class="title">姿美知音约课系统</view>
+    <input class="input" placeholder="请输入姓名" name type="text" bindinput="onNameInput"/>
+    <input class="input" placeholder="请输入手机号" maxlength="11" type="number" bindinput="onPhoneInput"/>
+    <button class="login-btn" bindtap="onLogin">登录</button>
+  </view>
+</view>
