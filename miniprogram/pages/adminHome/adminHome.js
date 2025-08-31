@@ -32,5 +32,10 @@ Page({
     wx.navigateTo({
       url: '/pages/admin/schedules/schedules'
     })
+  },
+  goTotrail() {
+    wx.navigateTo({
+      url: '/pages/admin/trailManage/trailManage'
+    })
   }
 });

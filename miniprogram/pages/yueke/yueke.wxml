@@ -1,8 +1,15 @@
 <view class="container">
+  <!-- 课程类型选择 -->
   <view class="type-bar">
     <button class="type-btn {{selectedType=='group'?'active':''}}" data-type="group" bindtap="switchType">团课</button>
     <button class="type-btn {{selectedType=='private'?'active':''}}" data-type="private" bindtap="switchType">私教</button>
   </view>
+  <!-- 本周/下周切换按钮 -->
+  <view class="week-switch-bar">
+    <button class="week-btn {{weekOffset==0?'active':''}}" bindtap="showThisWeek">本周课表</button>
+    <button class="week-btn {{weekOffset==7?'active':''}}" bindtap="showNextWeek">下周课表</button>
+  </view>
+  <!-- 日期滑动选择 -->
   <scroll-view scroll-x class="date-bar">
     <block wx:for="{{weekDates}}" wx:key="date">
       <button class="date-btn {{selectedDate==item?'active':''}}" data-date="{{item}}" bindtap="selectDate">{{item}}</button>
@@ -25,12 +32,17 @@
           <text class="lesson-label">人数：</text><text>{{item.bookedCount}}/{{item.maxCount}}</text>
         </view>
         <view class="btn-bar">
+          <!-- 可预约 -->
           <button class="book-btn" size="mini" data-index="{{index}}" bindtap="bookLesson"
             wx:if="{{item.canBook}}">预约</button>
+          <!-- 已预约可取消 -->
           <button class="cancel-btn" size="mini" data-index="{{index}}" bindtap="cancelLesson"
             wx:if="{{item.hasBooked}}">取消预约</button>
+          <!-- 约满/不可预约提示（含时间限制） -->
           <button class="book-btn full" size="mini" disabled
-            wx:if="{{!item.canBook && !item.hasBooked}}">已约满</button>
+            wx:if="{{!item.canBook && !item.hasBooked}}">
+            {{item.bookTimeTip || '已约满'}}
+          </button>
         </view>
       </view>
     </block>

@@ -28,13 +28,14 @@ exports.main = async (event, context) => {
   const lesson = lessons[lessonIndex]
 
   // 操作逻辑
-  if (action === 'book') {
-    if (lesson.bookedCount >= lesson.maxCount)
+  // 预约时写入学生信息
+if (action === 'book') {
+  if (lesson.bookedCount >= lesson.maxCount)
       return { success: false, msg: '已约满' }
-    if (lesson.students && lesson.students.find(s => s.studentId === student.studentId))
+  if (lesson.students && lesson.students.find(s => s.studentId === student.studentId))
       return { success: false, msg: '已预约' }
-    lesson.bookedCount += 1
-    lesson.students = lesson.students || []
+  lesson.bookedCount += 1
+  lesson.students = lesson.students || []
     lesson.students.push(student)
   } else if (action === 'cancel' || action === 'forceCancel') {
     const idx = lesson.students ? lesson.students.findIndex(s => s.studentId === student.studentId) : -1

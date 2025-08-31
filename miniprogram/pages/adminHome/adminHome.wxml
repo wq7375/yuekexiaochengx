@@ -32,5 +32,11 @@
       <text>学生管理</text>
       </button>
     </view>
+    <view class="action-item">
+      <button class="icon-btn" bindtap="goTotrail">
+      <image src="/images/课程.png"></image>
+      <text>体验课信息</text>
+      </button>
+    </view>
   </view>
 </view>

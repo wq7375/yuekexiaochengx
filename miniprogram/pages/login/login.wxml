@@ -6,5 +6,6 @@
     <input class="input" placeholder="请输入姓名" name type="text" bindinput="onNameInput"/>
     <input class="input" placeholder="请输入手机号" maxlength="11" type="number" bindinput="onPhoneInput"/>
     <button class="login-btn" bindtap="onLogin">登录</button>
+    <button class="visitor-btn" bindtap="visitorLogin">游客登录</button>
   </view>
 </view>

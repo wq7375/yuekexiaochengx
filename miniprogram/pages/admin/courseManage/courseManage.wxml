@@ -1,52 +1,74 @@
-<view class="container">
-  <view class="week-bar">
-    <view>本周起始：{{weekStart}}</view>
-    <button bindtap="saveSchedule" class="save-btn">保存课表</button>
-  </view>
-  <view class="days-bar">
-    <block wx:for="{{courses}}" wx:key="index">
-      <view class="day-item {{selectedDate==item.date && selectedType==item.type?'active':''}}"
-        bindtap="selectDateType"
-        data-date="{{item.date}}" data-type="{{item.type}}">
-        <text>{{item.date}}</text>
-        <text>{{item.type=='group'?'团课':'私教'}}</text>
-      </view>
+<view class="week-switch-bar">
+  <button bindtap="showThisWeek" class="week-btn {{weekOffset==0?'active':''}}">本周课表</button>
+  <button bindtap="showNextWeek" class="week-btn {{weekOffset==7?'active':''}}" wx:if="{{canSetNextWeek}}">下周课表</button>
+  <view wx:if="{{!canSetNextWeek}}" style="color:#aaa;margin-top:12rpx;">周六上午10点后可制定下周课表</view>
+</view>
+<view class="copy-bar">
+  <button type="primary" bindtap="copyLastWeekSchedule">复制上周课表</button>
+  <view class="copy-tip">复制后可直接修改课程内容，不影响上周预约数据</view>
+</view>
+<!-- 日期与类型选择 -->
+<view class="date-type-bar">
+  <scroll-view scroll-x>
+    <block wx:for="{{courses}}" wx:key="date-type">
+      <button class="date-type-btn {{selectedDate==item.date && selectedType==item.type?'active':''}}"
+        data-date="{{item.date}}" data-type="{{item.type}}" bindtap="selectDateType">
+        {{item.date}} {{item.type=='group'?'团课':'私教'}}
+      </button>
     </block>
-  </view>
-  <view wx:if="{{selectedDate}}">
-  <view class="edit-title">{{selectedDate}} {{selectedType=='group'?'团课':'私教'}}课表</view>
-  <scroll-view style="max-height: 400rpx;">
-    <!-- 只遍历当前选中项的 lessons -->
-    <block wx:for="{{getCurrentLessons(courses, selectedDate, selectedType)}}" wx:key="index">
-      <view class="lesson-row">
-        <view>时间：{{item.startTime}} - {{item.endTime}}</view>
+  </scroll-view>
+</view>
+<!-- 课程列表 -->
+<view class="lesson-list">
+  <block wx:for="{{courses}}" wx:key="date-type">
+    <view wx:if="{{selectedDate==item.date && selectedType==item.type}}">
+      <view class="lesson-card" wx:for="{{item.lessons}}" wx:key="idx">
+        <view>时间：{{item.startTime}}-{{item.endTime}}</view>
         <view>老师：{{item.teacher}}</view>
         <view>内容：{{item.content}}</view>
         <view>人数：{{item.bookedCount}}/{{item.maxCount}}</view>
-        <button size="mini" data-date="{{selectedDate}}" data-type="{{selectedType}}" data-index="{{index}}" bindtap="onDeleteLesson">删除</button>
-        <button size="mini" data-date="{{selectedDate}}" data-type="{{selectedType}}" data-index="{{index}}" bindtap="viewBookings">预约名单</button>
+        <view>
+          <button size="mini" data-date="{{item.date}}" data-type="{{item.type}}" data-index="{{idx}}" bindtap="onDeleteLesson">删除</button>
+          <button size="mini" data-date="{{item.date}}" data-type="{{item.type}}" data-index="{{idx}}" bindtap="viewBookings">查看预约</button>
+        </view>
       </view>
-    </block>
-  </scroll-view>
-  <!-- 录入区不变 -->
-  <view class="lesson-form">
-    <picker mode="selector" range="{{hours}}" bindchange="onPickerChange" data-field="startHour">
-      <view class="picker-text">开始小时：{{editingLesson.startHour}}</view>
-    </picker>
-    <picker mode="selector" range="{{minutes}}" bindchange="onPickerChange" data-field="startMinute">
-      <view class="picker-text">开始分钟：{{editingLesson.startMinute}}</view>
-    </picker>
-    <picker mode="selector" range="{{hours}}" bindchange="onPickerChange" data-field="endHour">
-      <view class="picker-text">结束小时：{{editingLesson.endHour}}</view>
-    </picker>
-    <picker mode="selector" range="{{minutes}}" bindchange="onPickerChange" data-field="endMinute">
-      <view class="picker-text">结束分钟：{{editingLesson.endMinute}}</view>
-    </picker>
-    <input class="input" placeholder="老师" bindinput="onLessonFieldInput" data-field="teacher" value="{{editingLesson.teacher}}" />
-    <input class="input" placeholder="课程内容" bindinput="onLessonFieldInput" data-field="content" value="{{editingLesson.content}}" />
-    <input class="input" type="number" placeholder="最少人数" bindinput="onLessonFieldInput" data-field="minCount" value="{{editingLesson.minCount}}"/>
-    <input class="input" type="number" placeholder="最多人数" bindinput="onLessonFieldInput" data-field="maxCount" value="{{editingLesson.maxCount}}"/>
-    <button class="add-btn" bindtap="addLesson">新增课程</button>
-  </view>
+      <view wx:if="{{item.lessons.length==0}}" style="color:#aaa;">暂无课程</view>
+    </view>
+  </block>
 </view>
+<!-- 新增课程表单 -->
+<view class="add-lesson-form">
+  <view class="form-title">新增课程</view>
+  <view class="form-row">
+    <text>开始时间</text>
+    <picker mode="selector" range="{{hours}}" value="{{hours.indexOf(editingLesson.startHour)}}" data-field="startHour" bindchange="onPickerChange">
+      <text>{{editingLesson.startHour}}</text>
+    </picker>
+    <picker mode="selector" range="{{minutes}}" value="{{minutes.indexOf(editingLesson.startMinute)}}" data-field="startMinute" bindchange="onPickerChange">
+      <text>{{editingLesson.startMinute}}</text>
+    </picker>
+    <text>结束时间</text>
+    <picker mode="selector" range="{{hours}}" value="{{hours.indexOf(editingLesson.endHour)}}" data-field="endHour" bindchange="onPickerChange">
+      <text>{{editingLesson.endHour}}</text>
+    </picker>
+    <picker mode="selector" range="{{minutes}}" value="{{minutes.indexOf(editingLesson.endMinute)}}" data-field="endMinute" bindchange="onPickerChange">
+      <text>{{editingLesson.endMinute}}</text>
+    </picker>
+  </view>
+  <view class="form-row">
+    <text>老师</text>
+    <input placeholder="老师姓名" value="{{editingLesson.teacher}}" data-field="teacher" bindinput="onLessonFieldInput"/>
+  </view>
+  <view class="form-row">
+    <text>内容</text>
+    <input placeholder="课程内容" value="{{editingLesson.content}}" data-field="content" bindinput="onLessonFieldInput"/>
+  </view>
+  <view class="form-row">
+    <text>最少人数</text>
+    <input type="number" value="{{editingLesson.minCount}}" data-field="minCount" bindinput="onLessonFieldInput" style="width:90rpx;"/>
+    <text>最多人数</text>
+    <input type="number" value="{{editingLesson.maxCount}}" data-field="maxCount" bindinput="onLessonFieldInput" style="width:90rpx;"/>
+  </view>
+  <button type="primary" bindtap="addLesson">添加课程</button>
+  <button type="primary" style="margin-top:16rpx;" bindtap="saveSchedule">保存课表</button>
 </view>

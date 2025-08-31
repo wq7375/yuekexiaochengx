@@ -10,7 +10,11 @@
     "pages/admin/teacherManage/teacherManage",
     "pages/admin/courseManage/courseManage",
     "pages/admin/studentManage/studentManage",
-    "pages/admin/schedules/schedules"
+    "pages/admin/schedules/schedules",
+    "pages/teacherDetail/teacherDetail",
+    "pages/youke/youke",
+    "pages/experience/experience",
+    "pages/admin/trailManage/trailManage"
   ],
   "window": {
     "navigationBarTextStyle": "black",

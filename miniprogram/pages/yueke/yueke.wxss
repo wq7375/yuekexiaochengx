@@ -1,46 +1,21 @@
-.container {padding: 24rpx; background: #f7f9fa; min-height: 100vh;}
-.type-bar {display:flex;gap:12rpx;margin-bottom:18rpx;}
-.type-btn {background:#e7f1ff;padding:16rpx 0;border-radius:10rpx;font-size:28rpx;width:40vw;}
-.type-btn.active {background:#4b6cff;color:#fff;font-weight:bold;}
-.date-bar {display:flex;gap:10rpx;margin-bottom:14rpx;white-space:nowrap;}
-.date-btn {background:#e7f1ff;padding:10rpx 18rpx;border-radius:8rpx;font-size:26rpx;display:inline-block;}
-.date-btn.active {background:#4b6cff;color:#fff;}
-.lessons-title {font-size:28rpx;font-weight:bold;color:#4b6cff;margin-bottom:18rpx;}
-.lesson-list {margin-top:12rpx;}
-.lesson-card {
-  background:#fff;
-  border-radius:12rpx;
-  box-shadow:0 2rpx 8rpx rgba(76,108,255,0.06);
-  padding:18rpx 18rpx 12rpx 18rpx;
-  margin-bottom:18rpx;
-  position:relative;
-}
-.lesson-time {font-size:26rpx;color:#3152c0;margin-bottom:10rpx;}
-.lesson-info {font-size:24rpx;color:#444;margin-bottom:4rpx;display:flex;}
-.lesson-label {color:#8aa2fa;width:80rpx;}
-.btn-bar {display:flex;gap:18rpx;margin-top:12rpx;}
-.book-btn {
-  background:#4b6cff;
-  color:#fff;
-  border-radius:8rpx;
-  font-size:26rpx;
-  padding: 10rpx 32rpx;
-}
-.book-btn.full {
-  background:#c0c4cc;
-  color:#fff;
-}
-.cancel-btn {
-  background:#fff;
-  color:#4b6cff;
-  border:1rpx solid #4b6cff;
-  border-radius:8rpx;
-  font-size:26rpx;
-  padding: 10rpx 32rpx;
-}
-.empty-tip {
-  color:#999;
-  text-align:center;
-  margin-top:40rpx;
-  font-size:26rpx;
-}
+.container { padding: 24rpx; }
+.type-bar { display: flex; margin-bottom: 18rpx; }
+.type-btn { flex: 1; margin-right: 18rpx; border-radius: 20rpx; background: #f7f7fa; color: #7c3aed; font-size: 30rpx; }
+.type-btn.active { background: linear-gradient(90deg,#753a88,#f2c2ff); color: #fff; }
+.week-switch-bar { display: flex; margin-bottom: 12rpx; }
+.week-btn { flex: 1; margin-right: 18rpx; border-radius: 20rpx; background: #f7f7fa; color: #753a88; font-size: 28rpx; }
+.week-btn.active { background: #753a88; color: #fff; }
+.date-bar { margin-bottom: 18rpx; }
+.date-btn { margin-right: 12rpx; padding: 8rpx 22rpx; border-radius: 12rpx; border: 1px solid #eee; color: #753a88; background: #f7f7fa; }
+.date-btn.active { background: #753a88; color: #fff; border: none; }
+.lessons-title { font-size: 28rpx; font-weight: bold; margin-bottom: 18rpx; color: #753a88; }
+.lesson-list { }
+.lesson-card { background: #f8f6fd; border-radius: 16rpx; margin-bottom: 20rpx; padding: 24rpx; box-shadow: 0 2rpx 10rpx #eee; }
+.lesson-time { font-size: 28rpx; color: #333; margin-bottom: 8rpx; }
+.lesson-info { font-size: 26rpx; color: #666; margin-bottom: 5rpx; }
+.lesson-label { color: #753a88; font-weight: bold; margin-right: 8rpx; }
+.btn-bar { margin-top: 16rpx; display: flex; gap: 8rpx; }
+.book-btn { background: linear-gradient(90deg,#753a88,#f2c2ff); color: #fff; border-radius: 8rpx; }
+.book-btn.full { background: #eee; color: #bbb; }
+.cancel-btn { background: #fff3f3; color: #f56c6c; border-radius: 8rpx; }
+.empty-tip { color: #aaa; text-align: center; margin-top: 32rpx; font-size: 26rpx; }

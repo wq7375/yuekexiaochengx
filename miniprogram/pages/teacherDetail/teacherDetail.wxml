@@ -1,0 +1,8 @@
+<!--pages/teacherDetail/teacherDetail.wxml-->
+<view class="teacher-detail">
+  <image class="avatar" src="{{teacher.avatar || '/images/default-teacher.png'}}"/>
+  <text class="name">{{teacher.name}}</text>
+  <text class="skills">擅长：{{teacher.skills.join('，')}}</text>
+  <text class="intro">{{teacher.intro}}</text>
+  <video wx:if="{{teacher.video}}" src="{{teacher.video}}" controls style="width:100%"/>
+</view>

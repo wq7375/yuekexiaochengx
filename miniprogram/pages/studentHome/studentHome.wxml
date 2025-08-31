@@ -3,18 +3,13 @@
   autoplay
   indicator-dots
   interval="3000"
-  circular>
-  <swiper-item>
-  <image src="/images/banner/banner1.jpg" mode="aspectFill"/>
+  circular
+  class="banner-swiper">
+  <swiper-item wx:for="{{banners}}" wx:key="_id">
+    <image src="{{item.image}}" mode="aspectFill" class="banner-img"/>
   </swiper-item>
-  <swiper-item>
-    <image src="/images/banner/banner2.jpg" mode="aspectFill"/>
-  </swiper-item>
-  <swiper-item>
-    <image src="/images/banner/banner3.jpg" mode="aspectFill"/>
-  </swiper-item>
-
 </swiper>
+
 <view class="company-info">
     <view class="company-name">姿美知音舞蹈</view>
     <view class="address">
@@ -23,12 +18,7 @@
     </view>
   </view>
   <view class="quick-actions">
-    <view class="action-item">
-      <button class="icon-btn" bindtap="goToExperience">
-      <image src="/images/课程.png"></image>
-      <text>体验课</text>
-      </button>
-    </view>
+   
     <view class="action-item">
       <button class="icon-btn" bindtap='goToyueke'>
       <image src="/images/约课.png"></image>
@@ -36,38 +26,26 @@
       </button>
     </view>
     <view class="action-item">
-      <button class="icon-btn" bindtap='goToyueke'>
+      <button class="icon-btn" bindtap='goTomy'>
       <image src="/images/全部课程.png"></image>
-      <text>课程</text>
+      <text>个人中心</text>
       </button>
     </view>
   </view>
 
   <!-- Gold Teachers Section -->
-
+ 
   <view class="teachers-section">
-    <view class="section-title">舞蹈老师 <text></text></view>
-    <scroll-view scroll-x class="teachers-scroll">
-      <view class="teacher-item">
-        <button class="icon-btn" bindtap='goToyaoyao'>
-        <image src="/images/teacher1.png" mode="aspectFit"></image>
-        <text>鳐鳐老师</text>
-        </button>
-      </view>
-      <view class="teacher-item">
-        <button class="icon-btn" bindtap="goToyaoyao">
-        <image src="/images/teacher2.png" mode="aspectFit"></image>
-        <text>钟庆老师</text>
-        </button>
-      </view>
-      <view class="teacher-item">
-        <button class="icon-btn" bindtap="goToyaoyao">
-        <image src="/images/teacher1.png" mode="aspectFit"></image>
-        <text>梦梦老师</text>
-        </button>
-      </view>
-    </scroll-view>
-  </view>
+  <view class="section-title">舞蹈老师</view>
+  <scroll-view scroll-x class="teachers-scroll">
+    <view wx:for="{{teacherList}}" wx:key="_id" class="teacher-item">
+      <button class="icon-btn" bindtap="goTeacherDetail" data-id="{{item._id}}">
+        <image src="{{item.avatar || '/images/default-teacher.png'}}" mode="aspectFit"></image>
+        <text>{{item.name}}</text>
+      </button>
+    </view>
+  </scroll-view>
+</view>
 
   <!-- About Us Section -->
 

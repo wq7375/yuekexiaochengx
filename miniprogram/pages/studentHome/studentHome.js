@@ -1,34 +1,64 @@
 // pages/studentHome/studentHome.js
+const db = wx.cloud.database();
+
 Page({
   data: {
-    banners: [
-      '/images/banner/banner1.jpg',
-      '/images/banner/banner2.jpg',
-      '/images/banner/banner3.jpg',
-    ],
-    teachers: [
-      { name: '鳐鳐老师', image: '/images/teacher1.jpg' },
-      { name: '钟庆老师', image: '/images/teacher2.jpg' },
-      { name: '梦梦老师', image: '/images/teacher1.jpg' }
-    ]
+    banners: [],      // 轮播图数据（动态获取）
+    teacherList: []   // 老师数据（动态获取）
   },
-  onLoad: function (options) { }, 
-  goToExperience() {
-    wx.navigateTo({
-      url: '/pages/experience/experience'
-    })
+  onLoad: function (options) {
+    this.getBanners();
+    this.getTeachers();
   },
+
+  // 获取轮播图数据
+  getBanners() {
+    db.collection('banners').orderBy('createTime', 'desc').get({
+      success: res => {
+        this.setData({
+          banners: res.data
+        });
+      },
+      fail: () => {
+        this.setData({
+          banners: []
+        });
+      }
+    });
+  },
+
+  // 获取老师信息
+  getTeachers() {
+    db.collection('teachers').get({
+      success: res => {
+        this.setData({
+          teacherList: res.data
+        });
+      },
+      fail: () => {
+        this.setData({
+          teacherList: []
+        });
+      }
+    });
+  },
+
   goToyueke() {
     wx.switchTab({
       url: '/pages/yueke/yueke'
-    })
+    });
   },
-  goToyaoyao() {
-    wx.navigateTo({
-      url: '/pages/yaoyao/yaoyao'
-    })
+  goTomy() {
+    wx.switchTab({
+      url: '/pages/my/my'
+    });
   },
-  
-  
-})
 
+  // 点击老师头像跳转详情页
+  goTeacherDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: '/pages/teacherDetail/teacherDetail?id=' + id
+    });
+  }
+});

@@ -1,66 +1,60 @@
 // pages/admin/bannerManage/bannerManage.js
+const db = wx.cloud.database();
+
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    bannerList: [],
+    newBannerImage: '',
+    newBannerDesc: ''
   },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
+  onLoad() {
+    this.getBannerList();
   },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
+  getBannerList() {
+    db.collection('banners').orderBy('createTime', 'desc').get({
+      success: res => {
+        this.setData({ bannerList: res.data });
+      }
+    });
   },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
+  chooseBannerImage() {
+    wx.chooseImage({
+      count: 1,
+      success: res => {
+        wx.cloud.uploadFile({
+          cloudPath: 'banners/' + Date.now() + '.jpg',
+          filePath: res.tempFilePaths[0],
+          success: upRes => {
+            this.setData({ newBannerImage: upRes.fileID });
+          }
+        });
+      }
+    });
   },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
+  onDescInput(e) {
+    this.setData({ newBannerDesc: e.detail.value });
   },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
+  addBanner() {
+    db.collection('banners').add({
+      data: {
+        image: this.data.newBannerImage,
+        desc: this.data.newBannerDesc,
+        createTime: new Date()
+      },
+      success: () => {
+        wx.showToast({ title: '添加成功' });
+        this.setData({ newBannerImage: '', newBannerDesc: '' });
+        this.getBannerList();
+      }
+    });
   },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onDeleteBanner(e) {
+    const id = e.currentTarget.dataset.id;
+    db.collection('banners').doc(id).remove({
+      success: () => {
+        wx.showToast({ title: '已删除' });
+        this.getBannerList();
+      }
+    });
   }
-})
+});

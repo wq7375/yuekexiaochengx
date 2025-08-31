@@ -1,0 +1,42 @@
+/* pages/admin/trailManage/trailManage.wxss */
+.trial-manage-container {
+  padding: 32rpx;
+}
+.title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #753a88;
+  margin-bottom: 28rpx;
+}
+.trial-list {
+  margin-top: 16rpx;
+}
+.trial-row {
+  display: flex;
+  align-items: flex-start;
+  background: #f9f6ff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 18rpx;
+  box-shadow: 0 2rpx 8rpx #eee;
+}
+.row-info {
+  flex: 1;
+}
+.row-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #753a88;
+  margin-bottom: 6rpx;
+}
+.row-mobile, .row-date, .row-remark, .row-time {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 4rpx;
+}
+.empty-tip {
+  text-align: center;
+  color: #aaa;
+  margin-top: 48rpx;
+  font-size: 26rpx;
+}

@@ -109,6 +109,7 @@ Page({
     let userData = { name, phone, role };
     if (role === 'student') {
       userData.cards = cards;
+      // 新增时不填openid，等学生首次登录时自动补全
     }
     if (editingId) {
       db.collection('people').doc(editingId).update({

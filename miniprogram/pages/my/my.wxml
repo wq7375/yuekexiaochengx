@@ -1,2 +1,37 @@
 <!--pages/my/my.wxml-->
-<text>pages/my/my.wxml</text>
+<view class="profile-container">
+  <view class="profile-header">
+    <image class="profile-avatar" src="/images/student-avatar.png"></image>
+    <view class="profile-info">
+      <text class="profile-name">{{userName}}</text>
+      <text class="profile-phone">{{phone}}</text>
+    </view>
+  </view>
+
+  <view class="card-section">
+    <text class="section-title">我的卡信息</text>
+    <view wx:for="{{cards}}" wx:key="index" class="card-item">
+      <text class="card-label">{{item.label}}</text>
+      <text class="card-category">{{item.category == 'group' ? '团课' : '私教'}}</text>
+      <block wx:if="{{item.remainCount !== undefined}}">
+        <text class="card-remain">剩余次数：{{item.remainCount}}</text>
+      </block>
+      <block wx:if="{{item.expireDate}}">
+        <text class="card-expire">有效期至：{{item.expireDate}}</text>
+        <text class="card-remain-days">剩余天数：{{item.remainDays}}</text>
+      </block>
+    </view>
+  </view>
+
+  <view class="history-section">
+    <text class="section-title">历史上课信息</text>
+    <view wx:if="{{historyList.length > 0}}">
+      <view wx:for="{{historyList}}" wx:key="index" class="history-item">
+        <text>{{item.date}} {{item.startTime}}-{{item.endTime}} {{item.type == 'group' ? '团课' : '私教'}} {{item.content}} | 老师：{{item.teacher}}</text>
+      </view>
+    </view>
+    <view wx:else class="no-history">
+      <text>暂未有历史上课记录</text>
+    </view>
+  </view>
+</view>

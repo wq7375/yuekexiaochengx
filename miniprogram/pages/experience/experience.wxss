@@ -1,0 +1,16 @@
+/* pages/experience/experience.wxss */
+.trial-container { padding: 36rpx; }
+.trial-title { font-size: 32rpx; color: #753a88; font-weight: bold; margin-bottom: 32rpx; }
+.form-item { margin-bottom: 26rpx; }
+.form-item text { font-size: 26rpx; display: block; margin-bottom: 10rpx; }
+.form-item input, .form-item textarea, .picker-view {
+  width: 100%;
+  background: #f6f6fa;
+  border-radius: 8rpx;
+  padding: 18rpx;
+  font-size: 24rpx;
+  border: none;
+  margin-bottom: 4rpx;
+}
+.picker-view { color: #666; }
+.submit-btn { width: 100%; margin-top: 28rpx; font-size: 28rpx; background: linear-gradient(90deg,#753a88,#f2c2ff); border-radius: 8rpx; }

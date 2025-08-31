@@ -68,6 +68,7 @@ Page({
     const stuIdx = e.currentTarget.dataset.stuIdx;
     const lesson = this.data.lessons[lessonIdx];
     const student = lesson.students[stuIdx];
+    // 1. 先云函数更新schedules表（已约名单和计数）
     wx.cloud.callFunction({
       name: 'updateSchedule',
       data: {
@@ -80,8 +81,36 @@ Page({
       },
       success: res => {
         if (res.result.success) {
-          wx.showToast({ title: '已强制取消' });
-          this.initWeek();
+          // 2. 再删除booking表对应约课记录
+          db.collection('booking').where({
+            studentOpenid: student.studentId,
+            courseDate: this.data.selectedDate,
+            courseType: this.data.selectedType,
+            lessonIndex: lessonIdx,
+            weekStart: this.data.weekStart
+          }).get({
+            success: bookingRes => {
+              if (bookingRes.data.length) {
+                db.collection('booking').doc(bookingRes.data[0]._id).remove({
+                  success: () => {
+                    wx.showToast({ title: '已强制取消' });
+                    this.initWeek();
+                  },
+                  fail: () => {
+                    wx.showToast({ title: '强制取消成功，但历史记录删除失败', icon: 'none' });
+                    this.initWeek();
+                  }
+                });
+              } else {
+                wx.showToast({ title: '已强制取消' });
+                this.initWeek();
+              }
+            },
+            fail: () => {
+              wx.showToast({ title: '强制取消成功，但未查到历史记录', icon: 'none' });
+              this.initWeek();
+            }
+          });
         } else {
           wx.showToast({ title: res.result.msg, icon: 'none' });
         }

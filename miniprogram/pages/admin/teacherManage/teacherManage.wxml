@@ -1,2 +1,23 @@
 <!--pages/admin/teacherManage/teacherManage.wxml-->
-<text>pages/admin/teacherManage/teacherManage.wxml</text>
+<view class="teacher-admin">
+  <view class="form-section">
+    <image src="{{form.avatar || '/images/default-teacher.png'}}" class="avatar" bindtap="chooseAvatar"/>
+    <input placeholder="老师姓名" value="{{form.name}}" bindinput="onNameInput"/>
+    <input placeholder="老师介绍/擅长" value="{{form.intro}}" bindinput="onIntroInput"/>
+    <input placeholder="老师技能（逗号分隔）" value="{{form.skillsStr}}" bindinput="onSkillsInput"/>
+    <button bindtap="chooseVideo">上传舞蹈视频</button>
+    <video wx:if="{{form.video}}" src="{{form.video}}" controls style="width:100%"/>
+    <button bindtap="onSubmit">{{form.editId ? '更新老师信息' : '添加老师'}}</button>
+  </view>
+  <view class="list-section">
+    <view wx:for="{{teacherList}}" wx:key="_id" class="teacher-row">
+      <image src="{{item.avatar || '/images/default-teacher.png'}}" class="row-avatar"/>
+      <view class="row-info">
+        <text class="row-name">{{item.name}}</text>
+        <text class="row-skills">{{item.skills.join('，')}}</text>
+      </view>
+      <button size="mini" bindtap="onEdit" data-id="{{item._id}}">编辑</button>
+      <button size="mini" type="warn" bindtap="onDelete" data-id="{{item._id}}">删除</button>
+    </view>
+  </view>
+</view>

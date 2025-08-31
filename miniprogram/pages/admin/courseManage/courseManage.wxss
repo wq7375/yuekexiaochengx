@@ -1,12 +1,86 @@
-.container { padding: 24rpx; background: #fafcff; min-height: 100vh;}
-.week-bar {display:flex;align-items:center;gap:24rpx;margin-bottom:24rpx;}
-.copy-btn, .save-btn {background:#4b6cff;color:#fff;border-radius:8rpx;padding:8rpx 20rpx;}
-.days-bar {display:flex;flex-wrap:wrap;gap:12rpx;margin-bottom:24rpx;}
-.day-item {background:#e7f1ff;padding:12rpx 18rpx;border-radius:8rpx;min-width:120rpx;text-align:center;}
-.day-item.active {background:#4b6cff;color:#fff;}
-.edit-title {font-size:32rpx;font-weight:bold;color:#4b6cff;margin-bottom:12rpx;}
-.lesson-row {background:#fff;border-radius:8rpx;box-shadow:0 2rpx 8rpx rgba(0,0,0,0.04);margin-bottom:10rpx;padding:18rpx;}
-.lesson-form {background:#fff;padding:18rpx;border-radius:8rpx;margin-top:12rpx;display:flex;flex-direction:column;gap:10rpx;}
-.input {height:60rpx;border:1rpx solid #eaeaea;border-radius:8rpx;padding:0 12rpx;font-size:26rpx;}
-.picker-text {font-size:26rpx;color:#333;}
-.add-btn {background:#6ed0fa;color:#fff;border-radius:8rpx;height:60rpx;font-size:28rpx;}
+.week-switch-bar {
+  display: flex;
+  gap: 18rpx;
+  margin-bottom: 20rpx;
+}
+.week-btn {
+  flex: 1;
+  background: #f7f7fa;
+  color: #753a88;
+  border-radius: 22rpx;
+  font-size: 30rpx;
+  padding: 12rpx 0;
+}
+.week-btn.active {
+  background: linear-gradient(90deg,#753a88,#f2c2ff);
+  color: #fff;
+}
+.copy-bar {
+  margin-bottom: 18rpx;
+}
+.copy-bar button {
+  background: #e9d6ff;
+  color: #753a88;
+  border-radius: 16rpx;
+}
+.copy-tip {
+  color: #aaa;
+  margin-top: 6rpx;
+  font-size: 24rpx;
+}
+.date-type-bar {
+  margin-bottom: 12rpx;
+}
+.date-type-btn {
+  margin-right: 12rpx;
+  padding: 8rpx 28rpx;
+  border-radius: 12rpx;
+  background: #f7f7fa;
+  color: #753a88;
+  font-size: 28rpx;
+}
+.date-type-btn.active {
+  background: #753a88;
+  color: #fff;
+}
+.lesson-list {
+  margin-bottom: 20rpx;
+}
+.lesson-card {
+  background: #f4f1fa;
+  border-radius: 12rpx;
+  margin-bottom: 14rpx;
+  padding: 18rpx;
+  box-shadow: 0 2rpx 8rpx #eee;
+  font-size: 26rpx;
+}
+.add-lesson-form {
+  background: #f7f7fa;
+  border-radius: 18rpx;
+  padding: 22rpx;
+  margin-bottom: 28rpx;
+}
+.form-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #753a88;
+  margin-bottom: 12rpx;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+  gap: 16rpx;
+}
+.form-row text {
+  min-width: 60rpx;
+  color: #555;
+  font-size: 26rpx;
+}
+.form-row input {
+  background: #fff;
+  border-radius: 8rpx;
+  border: 1px solid #eee;
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+}
