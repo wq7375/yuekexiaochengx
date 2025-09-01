@@ -8,11 +8,13 @@ Page({
     selectedDate: '',
     lessons: [],
     dates: [],
-    // 强制预约弹窗及学生选择相关
+    // 强制预约弹窗及学生/卡选择相关
     forceBookDialogVisible: false,
     forceBookLessonIdx: null,
     studentList: [],
-    selectedStudentIdx: 0
+    selectedStudentIdx: 0,
+    cardList: [],
+    selectedCardIdx: 0
   },
   onLoad() {
     this.initWeek();
@@ -79,10 +81,17 @@ Page({
   // === 强制预约相关 ===
   openForceBookDialog(e) {
     const lessonIdx = e.currentTarget.dataset.lessonIdx;
+    // 默认选择第一个学生和卡
+    let cardList = [];
+    if (this.data.studentList.length > 0) {
+      cardList = this.data.studentList[0].cards || [];
+    }
     this.setData({
       forceBookDialogVisible: true,
       forceBookLessonIdx: lessonIdx,
-      selectedStudentIdx: 0 // 默认选第一个
+      selectedStudentIdx: 0,
+      cardList,
+      selectedCardIdx: 0
     });
   },
   closeForceBookDialog() {
@@ -95,17 +104,35 @@ Page({
     db.collection('people').where({role: 'student'}).get({
       success: res => {
         this.setData({ studentList: res.data || [], selectedStudentIdx: 0 });
+        // 预先填充卡列表
+        const cardList = res.data.length > 0 ? (res.data[0].cards || []) : [];
+        this.setData({ cardList, selectedCardIdx: 0 });
       }
     });
   },
   onForceBookStudentChange(e) {
-    this.setData({ selectedStudentIdx: e.detail.value });
+    // 切换学生时，自动切换卡列表为该学生所有卡
+    const idx = e.detail.value;
+    const cardList = this.data.studentList[idx].cards || [];
+    this.setData({ 
+      selectedStudentIdx: idx, 
+      cardList, 
+      selectedCardIdx: 0 
+    });
+  },
+  onForceBookCardChange(e) {
+    this.setData({ selectedCardIdx: e.detail.value });
   },
   submitForceBook() {
     const lessonIdx = this.data.forceBookLessonIdx;
     const student = this.data.studentList[this.data.selectedStudentIdx];
+    const card = this.data.cardList[this.data.selectedCardIdx];
     if (!student) {
       wx.showToast({ title: '请选择学生', icon: 'none' });
+      return;
+    }
+    if (!card) {
+      wx.showToast({ title: '请选择卡', icon: 'none' });
       return;
     }
     const lesson = this.data.lessons[lessonIdx];
@@ -115,7 +142,7 @@ Page({
         studentId: student._id,
         scheduleId: lesson.scheduleId || '', // 若有
         action: 'reserve',
-        cardType: student.cardType || '',
+        cardLabel: card.label, // 关键：传label用于云函数查找对应卡
         isForce: true
       },
       success: res => {
@@ -139,6 +166,7 @@ Page({
                   data: {
                     studentOpenid: student._id,
                     name: student.name,
+                    cardLabel: card.label,
                     courseDate: this.data.selectedDate,
                     courseType: this.data.selectedType,
                     lessonIndex: lessonIdx,
@@ -181,7 +209,7 @@ Page({
         studentId: student.studentId,
         scheduleId: lesson.scheduleId || '', // 若有
         action: 'cancel',
-        cardType: student.cardType || '',
+        cardLabel: student.cardLabel || '', // 学生上应带有cardLabel
         isForce: true
       },
       success: res => {

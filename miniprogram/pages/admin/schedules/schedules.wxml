@@ -40,14 +40,20 @@
     <view wx:if="{{lessons.length==0}}" class="empty-tip">当天暂无课程</view>
   </view>
 
-  <!-- 强制预约弹窗，选择学生 -->
+  <!-- 强制预约弹窗，选择学生和卡 -->
   <view wx:if="{{forceBookDialogVisible}}" class="forcebook-dialog">
     <view class="dialog-content">
-      <view class="dialog-title">选择学生强制预约</view>
+      <view class="dialog-title">选择学生和卡强制预约</view>
       <picker mode="selector" range="{{studentList}}" range-key="name" value="{{selectedStudentIdx}}" bindchange="onForceBookStudentChange">
         <view class="dialog-row">
           <text class="dialog-label">学生：</text>
           <text class="dialog-value">{{studentList.length > 0 ? studentList[selectedStudentIdx].name : '无学生'}}</text>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{cardList}}" range-key="label" value="{{selectedCardIdx}}" bindchange="onForceBookCardChange">
+        <view class="dialog-row">
+          <text class="dialog-label">卡片：</text>
+          <text class="dialog-value">{{cardList.length > 0 ? cardList[selectedCardIdx].label : '无卡'}}</text>
         </view>
       </picker>
       <view class="dialog-btn-row">
