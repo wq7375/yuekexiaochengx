@@ -35,3 +35,24 @@
   margin-left:10rpx;
   font-size:22rpx;
 }
+.forcebook-dialog {
+  position: fixed;
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dialog-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 30rpx 40rpx;
+  min-width: 400rpx;
+}
+.dialog-title { font-weight: bold; margin-bottom: 30rpx; }
+.dialog-row { margin: 18rpx 0; }
+.dialog-label { margin-right: 20rpx; }
+.dialog-btn-row { display: flex; justify-content: space-between; margin-top: 30rpx; }
+.dialog-btn { width: 40%; }
+.dialog-value { color: #1890ff; }

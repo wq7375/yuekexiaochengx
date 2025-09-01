@@ -32,8 +32,28 @@
             <text wx:if="{{!item.students || item.students.length==0}}" class="empty-tip">暂无预约</text>
           </view>
         </view>
+        <view class="force-book-area">
+          <button class="force-book-btn" size="mini" data-lesson-idx="{{index}}" bindtap="openForceBookDialog">强制预约</button>
+        </view>
       </view>
     </block>
     <view wx:if="{{lessons.length==0}}" class="empty-tip">当天暂无课程</view>
+  </view>
+
+  <!-- 强制预约弹窗，选择学生 -->
+  <view wx:if="{{forceBookDialogVisible}}" class="forcebook-dialog">
+    <view class="dialog-content">
+      <view class="dialog-title">选择学生强制预约</view>
+      <picker mode="selector" range="{{studentList}}" range-key="name" value="{{selectedStudentIdx}}" bindchange="onForceBookStudentChange">
+        <view class="dialog-row">
+          <text class="dialog-label">学生：</text>
+          <text class="dialog-value">{{studentList.length > 0 ? studentList[selectedStudentIdx].name : '无学生'}}</text>
+        </view>
+      </picker>
+      <view class="dialog-btn-row">
+        <button class="dialog-btn" size="mini" bindtap="submitForceBook">确定</button>
+        <button class="dialog-btn" size="mini" bindtap="closeForceBookDialog">取消</button>
+      </view>
+    </view>
   </view>
 </view>

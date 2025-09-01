@@ -38,6 +38,7 @@ Page({
     userId: '',
     userName: '',
     weekOffset: 0, // 0:本周 7:下周
+    cardType: '', // 增加：学生的卡类型
   },
 
   onLoad() {
@@ -60,12 +61,14 @@ Page({
             if (res2.data.length) {
               this.setData({
                 userId: openid,
-                userName: res2.data[0].name
+                userName: res2.data[0].name,
+                cardType: res2.data[0].cardType, // 获取卡类型，便于云函数判断
               });
             } else {
               this.setData({
                 userId: openid,
-                userName: '未知'
+                userName: '未知',
+                cardType: ''
               });
             }
             this.initWeek();
@@ -73,7 +76,8 @@ Page({
           fail: () => {
             this.setData({
               userId: openid,
-              userName: '未知'
+              userName: '未知',
+              cardType: ''
             });
             this.initWeek();
           }
@@ -173,7 +177,7 @@ Page({
     this.setData({ lessons });
   },
 
-  // 预约课程
+  // 预约课程（改成调用reserveClass云函数，实现扣卡+写入booking原子操作）
   bookLesson(e) {
     const index = e.currentTarget.dataset.index;
     let lessons = this.data.lessons;
@@ -190,48 +194,66 @@ Page({
       wx.showToast({ title: '请先完善学生信息', icon: 'none' });
       return;
     }
+
+    // 新增：调用云函数，先扣卡
     wx.cloud.callFunction({
-      name: 'updateSchedule',
+      name: 'reserveClass',
       data: {
-        weekStart: this.data.weekStart,
-        type: this.data.selectedType,
-        date: this.data.selectedDate,
-        lessonIndex: index,
-        action: 'book',
-        student: {
-          studentId: this.data.userId,
-          name: this.data.userName
-        }
+        studentId: this.data.userId,
+        scheduleId: lesson.scheduleId || '',  // 如果有scheduleId则传
+        action: 'reserve',
+        cardType: this.data.cardType
       },
       success: res => {
         if (res.result.success) {
-          db.collection('booking').add({
+          // 若扣卡成功，再写schedules和booking表，保持你原有逻辑
+          wx.cloud.callFunction({
+            name: 'updateSchedule',
             data: {
-              studentOpenid: this.data.userId,
-              name: this.data.userName,
-              courseDate: this.data.selectedDate,
-              courseType: this.data.selectedType,
-              lessonIndex: index,
               weekStart: this.data.weekStart,
-              createTime: new Date()
+              type: this.data.selectedType,
+              date: this.data.selectedDate,
+              lessonIndex: index,
+              action: 'book',
+              student: {
+                studentId: this.data.userId,
+                name: this.data.userName
+              }
             },
-            success: () => {
-              wx.showToast({ title: '预约成功' });
-              this.updateLessons();
-            },
-            fail: () => {
-              wx.showToast({ title: '预约成功，但历史记录写入失败', icon: 'none' });
-              this.updateLessons();
+            success: res2 => {
+              if (res2.result.success) {
+                db.collection('booking').add({
+                  data: {
+                    studentOpenid: this.data.userId,
+                    name: this.data.userName,
+                    courseDate: this.data.selectedDate,
+                    courseType: this.data.selectedType,
+                    lessonIndex: index,
+                    weekStart: this.data.weekStart,
+                    createTime: new Date()
+                  },
+                  success: () => {
+                    wx.showToast({ title: '预约成功' });
+                    this.updateLessons();
+                  },
+                  fail: () => {
+                    wx.showToast({ title: '预约成功，但历史记录写入失败', icon: 'none' });
+                    this.updateLessons();
+                  }
+                });
+              } else {
+                wx.showToast({ title: res2.result.msg || '预约失败', icon: 'none' });
+              }
             }
           });
         } else {
-          wx.showToast({ title: res.result.msg || '预约失败', icon: 'none' });
+          wx.showToast({ title: res.result.msg || '卡次数不足或已过期', icon: 'none' });
         }
       }
     });
   },
 
-  // 取消预约
+  // 取消预约（如需返还次数，建议云函数处理）
   cancelLesson(e) {
     const index = e.currentTarget.dataset.index;
     let lessons = this.data.lessons;
@@ -244,48 +266,62 @@ Page({
       wx.showToast({ title: '未预约', icon: 'none' });
       return;
     }
-    const stuIdx = lesson.students.findIndex(s=>s.studentId==this.data.userId);
-    lesson.students.splice(stuIdx, 1);
-    lesson.bookedCount -= 1;
-    if (lesson.bookedCount < 0) lesson.bookedCount = 0;
-    let courses = this.data.courses;
-    let cidx = courses.findIndex(c=>c.date==this.data.selectedDate && c.type==this.data.selectedType);
-    if (cidx !== -1) {
-      courses[cidx].lessons = lessons;
-      db.collection('schedules').where({ weekStart: this.data.weekStart }).get({
-        success: res => {
-          db.collection('schedules').doc(res.data[0]._id).update({
-            data: { courses }
-          }).then(()=>{
-            db.collection('booking').where({
-              studentOpenid: this.data.userId,
-              courseDate: this.data.selectedDate,
-              courseType: this.data.selectedType,
-              lessonIndex: index,
-              weekStart: this.data.weekStart
-            }).get({
-              success: bookingRes => {
-                if (bookingRes.data.length) {
-                  db.collection('booking').doc(bookingRes.data[0]._id).remove({
-                    success: () => {
+
+    // 新增：调用云函数，返还卡次数（如需要）
+    wx.cloud.callFunction({
+      name: 'reserveClass',
+      data: {
+        studentId: this.data.userId,
+        scheduleId: lesson.scheduleId || '',
+        action: 'cancel',
+        cardType: this.data.cardType
+      },
+      success: res => {
+        // 继续原有逻辑，同步schedules和booking表
+        const stuIdx = lesson.students.findIndex(s=>s.studentId==this.data.userId);
+        lesson.students.splice(stuIdx, 1);
+        lesson.bookedCount -= 1;
+        if (lesson.bookedCount < 0) lesson.bookedCount = 0;
+        let courses = this.data.courses;
+        let cidx = courses.findIndex(c=>c.date==this.data.selectedDate && c.type==this.data.selectedType);
+        if (cidx !== -1) {
+          courses[cidx].lessons = lessons;
+          db.collection('schedules').where({ weekStart: this.data.weekStart }).get({
+            success: res => {
+              db.collection('schedules').doc(res.data[0]._id).update({
+                data: { courses }
+              }).then(()=>{
+                db.collection('booking').where({
+                  studentOpenid: this.data.userId,
+                  courseDate: this.data.selectedDate,
+                  courseType: this.data.selectedType,
+                  lessonIndex: index,
+                  weekStart: this.data.weekStart
+                }).get({
+                  success: bookingRes => {
+                    if (bookingRes.data.length) {
+                      db.collection('booking').doc(bookingRes.data[0]._id).remove({
+                        success: () => {
+                          wx.showToast({ title: '已取消预约' });
+                          this.updateLessons();
+                        },
+                        fail: () => {
+                          wx.showToast({ title: '已取消课程，但历史记录删除失败', icon: 'none' });
+                          this.updateLessons();
+                        }
+                      });
+                    } else {
                       wx.showToast({ title: '已取消预约' });
                       this.updateLessons();
-                    },
-                    fail: () => {
-                      wx.showToast({ title: '已取消课程，但历史记录删除失败', icon: 'none' });
-                      this.updateLessons();
                     }
-                  });
-                } else {
-                  wx.showToast({ title: '已取消预约' });
-                  this.updateLessons();
-                }
-              }
-            });
+                  }
+                });
+              });
+            }
           });
         }
-      });
-    }
+      }
+    });
   }
 });
 
