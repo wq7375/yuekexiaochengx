@@ -1,1 +1,17 @@
-/* pages/admin/teacherManage/teacherManage.wxss */
+.container { padding: 32rpx; }
+.title { font-size: 36rpx; font-weight: bold; margin-bottom: 24rpx; }
+.teacher-form { background: #fafafa; padding: 24rpx; border-radius: 16rpx; margin-bottom: 32rpx; }
+.form-item { display: flex; align-items: center; margin-bottom: 18rpx; }
+.form-item text { width: 140rpx; }
+.avatar { width: 96rpx; height: 96rpx; border-radius: 50%; margin-right: 16rpx; border:1rpx solid #eee; }
+.upload-btn { background: #1aad19; color: #fff; margin-left: 16rpx; }
+.save-btn { margin-top: 18rpx; background: #1aad19; color: #fff; width: 100%; }
+.video-preview { width: 160rpx; height: 120rpx; border-radius: 10rpx; margin-right: 12rpx; background: #eee;}
+.teacher-list-title { font-size: 28rpx; margin-bottom: 18rpx; }
+.teacher-list { }
+.teacher-card { display: flex; align-items: flex-start; margin-bottom: 18rpx; background: #fff; box-shadow: 0 2rpx 12rpx #eee; border-radius: 12rpx; padding: 16rpx; }
+.avatar-mini { width: 72rpx; height: 72rpx; border-radius: 50%; margin-right: 24rpx; border:1rpx solid #eee;}
+.info { flex:1; }
+.name { font-size: 24rpx; font-weight: bold; }
+.intro { color: #666; font-size: 20rpx; margin: 8rpx 0; }
+.skills { color: #1aad19; font-size: 20rpx; }

@@ -1,64 +1,41 @@
-// pages/studentHome/studentHome.js
 const db = wx.cloud.database();
 
 Page({
   data: {
-    banners: [],      // 轮播图数据（动态获取）
-    teacherList: []   // 老师数据（动态获取）
+    banners: [],
+    teacherList: []
   },
-  onLoad: function (options) {
+  onLoad() {
     this.getBanners();
     this.getTeachers();
   },
-
-  // 获取轮播图数据
   getBanners() {
     db.collection('banners').orderBy('createTime', 'desc').get({
       success: res => {
-        this.setData({
-          banners: res.data
-        });
-      },
-      fail: () => {
-        this.setData({
-          banners: []
-        });
+        // 支持新老字段兼容
+        const banners = res.data.map(item => ({
+          ...item,
+          image: item.image || item.url // 兼容image/url字段
+        }));
+        this.setData({ banners });
       }
     });
   },
-
-  // 获取老师信息
   getTeachers() {
-    db.collection('teachers').get({
+    db.collection('teachers').orderBy('createTime', 'desc').get({
       success: res => {
-        this.setData({
-          teacherList: res.data
-        });
-      },
-      fail: () => {
-        this.setData({
-          teacherList: []
-        });
+        this.setData({ teacherList: res.data });
       }
     });
   },
-
   goToyueke() {
-    wx.switchTab({
-      url: '/pages/yueke/yueke'
-    });
+    wx.switchTab({ url: '/pages/yueke/yueke' });
   },
   goTomy() {
-    wx.switchTab({
-      url: '/pages/my/my'
-    });
+    wx.switchTab({ url: '/pages/my/my' });
   },
-
-  // 点击老师头像跳转详情页
   goTeacherDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: '/pages/teacherDetail/teacherDetail?id=' + id
-    });
+    wx.navigateTo({ url: '/pages/teacherDetail/teacherDetail?id=' + id });
   }
 });

@@ -15,37 +15,22 @@
       <button class="date-btn {{selectedDate==item?'active':''}}" data-date="{{item}}" bindtap="selectDate">{{item}}</button>
     </block>
   </scroll-view>
-  <view class="lessons-title">
-    {{selectedDate}} {{selectedType=='group'?'团课':'私教'}}课表
-  </view>
   <view class="lesson-list">
-    <block wx:for="{{lessons}}" wx:key="index">
-      <view class="lesson-card">
-        <view class="lesson-time">时间：{{item.startTime}}-{{item.endTime}}</view>
-        <view class="lesson-info">
-          <text class="lesson-label">老师：</text><text>{{item.teacher}}</text>
-        </view>
-        <view class="lesson-info">
-          <text class="lesson-label">内容：</text><text>{{item.content}}</text>
-        </view>
-        <view class="lesson-info">
-          <text class="lesson-label">人数：</text><text>{{item.bookedCount}}/{{item.maxCount}}</text>
-        </view>
-        <view class="btn-bar">
-          <!-- 可预约 -->
-          <button class="book-btn" size="mini" data-index="{{index}}" bindtap="bookLesson"
-            wx:if="{{item.canBook}}">预约</button>
-          <!-- 已预约可取消 -->
-          <button class="cancel-btn" size="mini" data-index="{{index}}" bindtap="cancelLesson"
-            wx:if="{{item.hasBooked}}">取消预约</button>
-          <!-- 约满/不可预约提示（含时间限制） -->
-          <button class="book-btn full" size="mini" disabled
-            wx:if="{{!item.canBook && !item.hasBooked}}">
-            {{item.bookTimeTip || '已约满'}}
-          </button>
-        </view>
+  <block wx:for="{{lessons}}" wx:key="index">
+    <view class="lesson-card">
+      <view class="lesson-time">时间：{{item.startTime}} - {{item.endTime}}</view>
+      <view class="lesson-info"><text class="lesson-label">老师：</text><text>{{item.teacher}}</text></view>
+      <view class="lesson-info"><text class="lesson-label">内容：</text><text>{{item.content}}</text></view>
+      <view class="lesson-info"><text class="lesson-label">人数：</text><text>{{item.bookedCount}}/{{item.maxCount}}</text></view>
+      <view class="btn-bar">
+        <button class="book-btn" size="mini" data-index="{{index}}" bindtap="bookLesson" wx:if="{{item.canBook}}">预约</button>
+        <button class="cancel-btn" size="mini" data-index="{{index}}" bindtap="cancelLesson" wx:if="{{item.hasBooked}}">取消预约</button>
+        <button class="book-btn full" size="mini" disabled wx:if="{{!item.canBook && !item.hasBooked}}">
+          {{item.bookTimeTip || '已约满'}}
+        </button>
       </view>
-    </block>
-    <view wx:if="{{lessons.length==0}}" class="empty-tip">当天暂无课程</view>
-  </view>
+    </view>
+  </block>
+  <view wx:if="{{lessons.length==0}}" class="empty-tip">当天暂无课程</view>
+</view>
 </view>

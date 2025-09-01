@@ -3,93 +3,101 @@ const db = wx.cloud.database();
 
 Page({
   data: {
-    userId: '',
-    userName: '',
-    phone: '',
-    cards: [],
-    historyList: [],
+    avatarUrl: '',      // 学生头像
+    userName: '',       // 姓名
+    userPhone: '',      // 手机号
+    cards: [],          // 卡片信息数组
+    historyList: [],    // 历史上课信息
+    showUploadAvatar: false, // 是否显示上传头像按钮
+    studentId: '',      // 当前学生数据库_id
+    openid: ''          // 当前openid
   },
 
   onLoad() {
-    this.getStudentInfo();
+    this.initStudentInfo();
   },
 
-  getStudentInfo() {
-    wx.cloud.callFunction({
-      name: 'login',
+  // 初始化学生信息
+  async initStudentInfo() {
+    // 获取 openid
+    const openid = await this.getOpenId();
+    this.setData({ openid });
+    // 查询 people 表
+    db.collection('people').where({ _openid: openid, role: 'student' }).get({
       success: res => {
-        const openid = res.result.openid;
-        db.collection('people').where({ _openid: openid, role: 'student' }).get({
-          success: res2 => {
-            if (res2.data.length) {
-              const user = res2.data[0];
-              this.setData({
-                userId: openid,
-                userName: user.name,
-                phone: user.phone,
-                cards: this.processCards(user.cards || [])
-              });
-              this.getHistoryLessons(openid);
-            } else {
-              wx.showToast({ title: '未获取到学生信息', icon: 'none' });
-            }
-          }
-        })
-      }
-    });
-  },
-
-  // 处理卡信息，补充剩余天数
-  processCards(cards) {
-    let today = new Date();
-    return (cards || []).map(card => {
-      let cardCopy = { ...card };
-      if (card.expireDate) {
-        let expire = new Date(card.expireDate);
-        let remainDays = Math.ceil((expire.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        cardCopy.remainDays = remainDays > 0 ? remainDays : 0;
-      }
-      return cardCopy;
-    });
-  },
-
-  // 获取历史上课信息
-  getHistoryLessons(openid) {
-    // booking 表存储约课记录，schedules 表存储课程内容
-    // booking表建议结构: { studentOpenid, courseDate, courseType, lessonIndex }
-    db.collection('booking').where({ studentOpenid: openid }).orderBy('courseDate', 'desc').get({
-      success: res => {
-        let bookings = res.data || [];
-        if (bookings.length === 0) {
-          this.setData({ historyList: [] });
-          return;
+        if (res.data.length) {
+          const person = res.data[0];
+          this.setData({
+            userName: person.name || '',
+            userPhone: person.phone || '',
+            avatarUrl: person.avatarUrl || '',
+            cards: person.cards || [],
+            studentId: person._id,
+            showUploadAvatar: !person.avatarUrl  // 首次登录显示上传头像
+          });
         }
-        // 批量查找课程内容
-        let promises = bookings.map(booking => {
-          return db.collection('schedules').where({ weekStart: booking.weekStart }).get()
-            .then(scheduleRes => {
-              if (scheduleRes.data.length) {
-                let courses = scheduleRes.data[0].courses;
-                let course = courses.find(c => c.date === booking.courseDate && c.type === booking.courseType);
-                if (course && course.lessons && course.lessons[booking.lessonIndex]) {
-                  let lesson = course.lessons[booking.lessonIndex];
-                  return {
-                    date: booking.courseDate,
-                    startTime: lesson.startTime,
-                    endTime: lesson.endTime,
-                    type: booking.courseType,
-                    content: lesson.content,
-                    teacher: lesson.teacher
-                  };
-                }
-              }
-              return null;
+        // 拉取历史记录
+        this.loadHistory();
+      }
+    });
+  },
+
+  // 获取 openid
+  getOpenId() {
+    return new Promise((resolve, reject) => {
+      wx.cloud.callFunction({
+        name: 'login', // 如果login返回openid，否则需补getOpenId
+        success: res => resolve(res.result.openid),
+        fail: () => reject('')
+      });
+    });
+  },
+
+  // 上传头像
+  uploadAvatar() {
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: res => {
+        const filePath = res.tempFilePaths[0];
+        wx.showLoading({ title: '上传中' });
+        wx.cloud.uploadFile({
+          cloudPath: 'avatar/' + this.data.studentId + '_' + Date.now() + '.jpg',
+          filePath: filePath,
+          success: uploadRes => {
+            this.setData({ avatarUrl: uploadRes.fileID, showUploadAvatar: false });
+            db.collection('people').doc(this.data.studentId).update({
+              data: { avatarUrl: uploadRes.fileID }
             });
+            wx.hideLoading();
+            wx.showToast({ title: '上传成功' });
+          },
+          fail: () => {
+            wx.hideLoading();
+            wx.showToast({ title: '上传失败', icon: 'none' });
+          }
         });
-        Promise.all(promises).then(list => {
-          this.setData({ historyList: list.filter(item => !!item) });
+      }
+    });
+  },
+
+  // 拉取历史上课信息
+  loadHistory() {
+    db.collection('booking').where({
+      _openid: this.data.openid
+    }).orderBy('date', 'desc').get({
+      success: res => {
+        this.setData({
+          historyList: res.data.map(item => ({
+            id: item._id,
+            date: item.date,
+            courseName: item.courseName,
+            teacher: item.teacher
+          }))
         });
       }
     });
   }
 });
+

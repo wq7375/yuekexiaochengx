@@ -1,1 +1,9 @@
 /* pages/teacherDetail/teacherDetail.wxss */
+.container { padding: 40rpx; text-align: center; }
+.avatar { width: 140rpx; height: 140rpx; border-radius: 50%; box-shadow: 0 2rpx 16rpx #eee; margin-bottom: 18rpx; }
+.name { font-size: 32rpx; font-weight: bold; margin-bottom: 8rpx; }
+.skills { color: #1aad19; font-size: 24rpx; margin-bottom: 18rpx; }
+.intro-section { background: #fafafa; border-radius: 16rpx; padding: 24rpx; margin-top: 18rpx; margin-bottom: 16rpx;}
+.section-title { font-size: 28rpx; font-weight: bold; margin-bottom: 12rpx; }
+.intro { color: #444; font-size: 22rpx; }
+.video-player { width: 96vw; max-width: 700rpx; height: 220rpx; border-radius: 14rpx; margin: 14rpx auto; display: block; background: #eee;}

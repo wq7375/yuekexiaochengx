@@ -3,6 +3,6 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 exports.main = async (event, context) => {
   return {
-    openid: cloud.getWXContext().OPENID,
+    openid: event.userInfo.openId || wx.cloud.getWXContext().OPENID
   }
 }

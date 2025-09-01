@@ -1,137 +1,163 @@
 /* pages/youke/youke.wxss */
-
+/* pages/studentHome/studentHome.wxss */
 .container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: Arial, sans-serif;
+  padding: 24rpx;
+  background: #f7f7fa;
+  min-height: 100vh;
 }
 
-/* Swiper Styles */
-swiper {
+.banner-swiper {
   width: 100%;
-  height: 400rpx; /* Adjust as needed */
+  height: 280rpx;
+  border-radius: 18rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 16rpx #eee;
 }
 
-swiper image {
+.banner-img {
   width: 100%;
-  height: 100%;
+  height: 280rpx;
+  object-fit: cover;
+  border-radius: 18rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 18rpx;
+  box-shadow: 0 2rpx 12rpx #eee;
+  padding: 22rpx 18rpx;
+  margin-bottom: 24rpx;
 }
 
 .company-info {
-  width: 100%;
-  padding: 20rpx;
-  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.company-info .company-name {
-  font-size: 38rpx;
+.company-name {
+  font-size: 34rpx;
   font-weight: bold;
+  color: #222;
   margin-bottom: 10rpx;
 }
 
-.company-info .address {
+.address {
   display: flex;
   align-items: center;
-  font-size: 30rpx;
-  color: #666;
+  color: #888;
+  font-size: 22rpx;
 }
 
-.company-info .address .icon {
-  width: 30rpx;
-  height: 30rpx;
-  margin-left: 10rpx;
-}
 .quick-actions {
   display: flex;
-  justify-content: space-around;
-  width: 100%;
-  padding: 20rpx;
-  box-sizing: border-box;
+  gap: 32rpx;
+  justify-content: center;
+  margin-bottom: 16rpx;
 }
+
+.action-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
 .icon-btn {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  background: none;
+  align-items: center;
+  background: #f2fbf7;
+  border-radius: 14rpx;
+  padding: 14rpx 0;
+  box-shadow: 0 1rpx 8rpx #e6f7ee;
+  width: 130rpx;
   border: none;
 }
-.icon-img {
-  width: 80rpx;
-  height: 80rpx;
-  margin-bottom: 10rpx;
-}
-.quick-actions .action-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+
+.icon-btn image {
+  width: 40rpx;
+  height: 40rpx;
+  margin-bottom: 6rpx;
 }
 
-.quick-actions .action-item image {
-  width: 80rpx;
-  height: 80rpx;
-  margin-bottom: 10rpx;
+.icon-16 {
+  width: 16rpx;
+  height: 16rpx;
+  margin-right: 6rpx;
 }
 
-.quick-actions .action-item text {
-  font-size: 30rpx;
+.icon-40 {
+  width: 40rpx;
+  height: 40rpx;
+  margin-bottom: 4rpx;
 }
 
-/* Teachers Section */
 .teachers-section {
-  width: 100%;
-  padding: 20rpx;
-  box-sizing: border-box;
+  margin-bottom: 24rpx;
 }
 
-.teachers-section .section-title {
-  font-size: 35rpx;
+.section-title {
+  font-size: 28rpx;
   font-weight: bold;
-  margin-bottom: 20rpx;
+  margin-bottom: 14rpx;
+}
+
+.teachers-scroll {
   display: flex;
-  justify-content: space-between;
-}
-
-.teachers-section .teachers-scroll {
+  flex-direction: row;
   white-space: nowrap;
+  overflow-x: auto;
+  padding-bottom: 12rpx;
 }
 
-.teachers-section .teacher-item {
-  display: inline-table;
+.teacher-item {
+  display: inline-block;
+  margin-right: 18rpx;
+}
+
+.teacher-btn {
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 16rpx #eee;
+  padding: 16rpx 10rpx;
+  width: 120rpx;
+  display: flex;
   flex-direction: column;
   align-items: center;
-
-  margin-right: 80rpx;
-  width: 100rpx;
+  border: none;
 }
 
-.teachers-section .teacher-item image {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 60%;
-  margin-bottom: 20rpx;
-  justify-content: space-between;
+.teacher-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  margin-bottom: 8rpx;
+  object-fit: cover;
+  background: #f7f7fa;
 }
 
-.teachers-section .teacher-item text {
-  text-align: center;
-  font-size: 30rpx;
-}
-
-/* About Us Section */
-.about-us {
-  width: 100%;
-  padding: 20rpx;
-  box-sizing: border-box;
-}
-
-.about-us .section-title {
-  font-size: 35rpx;
+.teacher-name {
+  font-size: 22rpx;
   font-weight: bold;
-  margin-bottom: 20rpx;
+  color: #222;
+  margin-bottom: 4rpx;
 }
 
-.about-us .contact-info {
-  font-size: 30rpx;
-  color: #666;
+.teacher-skills {
+  font-size: 18rpx;
+  color: #1aad19;
+  margin-top: 2rpx;
+}
+
+.about-us {
+  margin-bottom: 24rpx;
+}
+
+.contact-info {
+  font-size: 20rpx;
+  color: #555;
+  margin-bottom: 8rpx;
+  display: flex;
+  align-items: center;
 }

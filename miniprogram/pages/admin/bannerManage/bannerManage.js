@@ -1,50 +1,41 @@
-// pages/admin/bannerManage/bannerManage.js
 const db = wx.cloud.database();
 
 Page({
   data: {
-    bannerList: [],
-    newBannerImage: '',
-    newBannerDesc: ''
+    banners: []
   },
   onLoad() {
-    this.getBannerList();
+    this.getBanners();
   },
-  getBannerList() {
+  getBanners() {
     db.collection('banners').orderBy('createTime', 'desc').get({
       success: res => {
-        this.setData({ bannerList: res.data });
+        this.setData({ banners: res.data });
       }
     });
   },
-  chooseBannerImage() {
+  onAddBanner() {
     wx.chooseImage({
       count: 1,
       success: res => {
+        const filePath = res.tempFilePaths[0];
+        const cloudPath = "banners/" + Date.now() + "_" + Math.floor(Math.random()*1000) + ".jpg";
         wx.cloud.uploadFile({
-          cloudPath: 'banners/' + Date.now() + '.jpg',
-          filePath: res.tempFilePaths[0],
-          success: upRes => {
-            this.setData({ newBannerImage: upRes.fileID });
+          cloudPath,
+          filePath,
+          success: uploadRes => {
+            db.collection('banners').add({
+              data: {
+                url: uploadRes.fileID,
+                createTime: new Date()
+              },
+              success: () => {
+                wx.showToast({ title: '上传成功' });
+                this.getBanners();
+              }
+            });
           }
         });
-      }
-    });
-  },
-  onDescInput(e) {
-    this.setData({ newBannerDesc: e.detail.value });
-  },
-  addBanner() {
-    db.collection('banners').add({
-      data: {
-        image: this.data.newBannerImage,
-        desc: this.data.newBannerDesc,
-        createTime: new Date()
-      },
-      success: () => {
-        wx.showToast({ title: '添加成功' });
-        this.setData({ newBannerImage: '', newBannerDesc: '' });
-        this.getBannerList();
       }
     });
   },
@@ -53,7 +44,7 @@ Page({
     db.collection('banners').doc(id).remove({
       success: () => {
         wx.showToast({ title: '已删除' });
-        this.getBannerList();
+        this.getBanners();
       }
     });
   }

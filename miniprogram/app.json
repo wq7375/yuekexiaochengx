@@ -14,7 +14,8 @@
     "pages/teacherDetail/teacherDetail",
     "pages/youke/youke",
     "pages/experience/experience",
-    "pages/admin/trailManage/trailManage"
+    "pages/admin/trailManage/trailManage",
+    "pages/youkekebiao/youkekebiao"
   ],
   "window": {
     "navigationBarTextStyle": "black",

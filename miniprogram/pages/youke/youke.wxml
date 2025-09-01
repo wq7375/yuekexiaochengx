@@ -1,4 +1,7 @@
 <!--pages/youke/youke.wxml-->
+<view class="container">
+
+<!-- 顶部轮播图 -->
 <swiper 
   autoplay
   indicator-dots
@@ -10,56 +13,54 @@
   </swiper-item>
 </swiper>
 
-<view class="company-info">
-    <view class="company-name">姿美知音舞蹈</view>
-    <view class="address">
-      <text>重庆市江北区东原中心4号楼21-20</text>
-     
-    </view>
+<!-- 舞社信息 -->
+<view class="company-info card">
+  <view class="company-name">姿美知音舞蹈</view>
+  <view class="address">
+    <image src="/images/address.png" class="icon-16"/>
+    <text>重庆市江北区东原中心4号楼21-20</text>
   </view>
-  <view class="quick-actions">
-   
-    <view class="action-item">
-      <button class="icon-btn" bindtap='goToyueke'>
-      <image src="/images/约课.png"></image>
-      <text>课表</text>
-      </button>
-    </view>
-    <view class="action-item">
-      <button class="icon-btn" bindtap='goToexperience'>
-      <image src="/images/全部课程.png"></image>
-      <text>体验课预约</text>
-      </button>
-    </view>
-  </view>
+</view>
 
-  <!-- Gold Teachers Section -->
- 
-  <view class="teachers-section">
+<!-- 快捷入口 -->
+<view class="quick-actions">
+  <view class="action-item">
+    <button class="icon-btn" bindtap='goTokebiao'>
+      <image src="/images/约课.png" class="icon-40"/>
+      <text>课表</text>
+    </button>
+  </view>
+  <view class="action-item">
+    <button class="icon-btn" bindtap='goToexperience'>
+      <image src="/images/全部课程.png" class="icon-40"/>
+      <text>体验课预约</text>
+    </button>
+  </view>
+</view>
+
+<!-- 舞蹈老师 -->
+<view class="teachers-section card">
   <view class="section-title">舞蹈老师</view>
   <scroll-view scroll-x class="teachers-scroll">
     <view wx:for="{{teacherList}}" wx:key="_id" class="teacher-item">
-      <button class="icon-btn" bindtap="goTeacherDetail" data-id="{{item._id}}">
-        <image src="{{item.avatar || '/images/default-teacher.png'}}" mode="aspectFit"></image>
-        <text>{{item.name}}</text>
+      <button class="teacher-btn" bindtap="goTeacherDetail" data-id="{{item._id}}">
+        <image src="{{item.avatar || '/images/default-teacher.png'}}" mode="aspectFill" class="teacher-avatar"/>
+        <view class="teacher-name">{{item.name}}</view>
+        <view class="teacher-skills" wx:if="{{item.skills && item.skills.length}}">{{item.skills.join('、')}}</view>
       </button>
     </view>
   </scroll-view>
 </view>
 
-  <!-- About Us Section -->
-
-
-  <view class="about-us">
-    <view class="section-title">关于我们</view>
-    <view class="contact-info">
-      <text>电话: 18875178632</text>
-    </view>
-    <view class="contact-info"><text>地址: 重庆市江北区东原中心4号楼21-20</text></view>
-
+<!-- 关于我们 -->
+<view class="about-us card">
+  <view class="section-title">关于我们</view>
+  <view class="contact-info">
+    <image src="/images/phone.png" class="icon-16"/><text>电话: 18875178632</text>
   </view>
+  <view class="contact-info">
+    <image src="/images/address.png" class="icon-16"/><text>地址: 重庆市江北区东原中心4号楼21-20</text>
+  </view>
+</view>
 
-
-
-
-  
+</view>

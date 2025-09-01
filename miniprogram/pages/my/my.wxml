@@ -1,37 +1,45 @@
 <!--pages/my/my.wxml-->
-<view class="profile-container">
-  <view class="profile-header">
-    <image class="profile-avatar" src="/images/student-avatar.png"></image>
+<view class="mine-container">
+  <!-- 个人信息区块 -->
+  <view class="profile-card">
+    <image class="avatar" src="{{avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
     <view class="profile-info">
-      <text class="profile-name">{{userName}}</text>
-      <text class="profile-phone">{{phone}}</text>
-    </view>
-  </view>
-
-  <view class="card-section">
-    <text class="section-title">我的卡信息</text>
-    <view wx:for="{{cards}}" wx:key="index" class="card-item">
-      <text class="card-label">{{item.label}}</text>
-      <text class="card-category">{{item.category == 'group' ? '团课' : '私教'}}</text>
-      <block wx:if="{{item.remainCount !== undefined}}">
-        <text class="card-remain">剩余次数：{{item.remainCount}}</text>
-      </block>
-      <block wx:if="{{item.expireDate}}">
-        <text class="card-expire">有效期至：{{item.expireDate}}</text>
-        <text class="card-remain-days">剩余天数：{{item.remainDays}}</text>
-      </block>
-    </view>
-  </view>
-
-  <view class="history-section">
-    <text class="section-title">历史上课信息</text>
-    <view wx:if="{{historyList.length > 0}}">
-      <view wx:for="{{historyList}}" wx:key="index" class="history-item">
-        <text>{{item.date}} {{item.startTime}}-{{item.endTime}} {{item.type == 'group' ? '团课' : '私教'}} {{item.content}} | 老师：{{item.teacher}}</text>
+      <view class="user-row">
+        <view class="user-name">{{userName || '未设置昵称'}}</view>
+        <view class="user-phone">{{userPhone}}</view>
       </view>
+      <button class="upload-btn" wx:if="{{showUploadAvatar}}" bindtap="uploadAvatar">上传头像</button>
     </view>
-    <view wx:else class="no-history">
-      <text>暂未有历史上课记录</text>
+  </view>
+
+  <!-- 卡片区块 -->
+  <view class="section-card">
+    <view class="section-title">我的卡</view>
+    <block wx:if="{{cards.length > 0}}">
+      <block wx:for="{{cards}}" wx:key="label">
+        <view class="card-info">
+          <view>卡类型：{{item.label}}</view>
+          <view wx:if="{{item.expireDate}}">到期时间：{{item.expireDate}}</view>
+          <view wx:if="{{item.remainCount !== undefined}}">剩余次数：{{item.remainCount}}</view>
+          <view>类型：{{item.type}}</view>
+          <view>分类：{{item.category}}</view>
+        </view>
+      </block>
+    </block>
+    <view class="card-info" wx:else>暂无卡片信息</view>
+  </view>
+
+  <!-- 历史上课记录 -->
+  <view class="section-card">
+    <view class="section-title">历史上课记录</view>
+    <view class="record-list" wx:if="{{historyList.length > 0}}">
+      <block wx:for="{{historyList}}" wx:key="id">
+        <view class="record-item">
+          <view class="record-date">{{item.date}}</view>
+          <view class="record-detail">{{item.courseName}} | {{item.teacher}}</view>
+        </view>
+      </block>
     </view>
+    <view class="no-record" wx:else>暂无历史上课记录</view>
   </view>
 </view>

@@ -18,50 +18,65 @@ Page({
     this.getTeachers();
   },
   getTeachers() {
-    db.collection('teachers').get({
+    db.collection('teachers').orderBy('createTime','desc').get({
       success: res => {
         this.setData({ teacherList: res.data });
       }
     });
   },
-  chooseAvatar() {
+  onUploadAvatar() {
     wx.chooseImage({
       count: 1,
       success: res => {
+        const filePath = res.tempFilePaths[0];
+        const cloudPath = "teachers/" + Date.now() + "_" + Math.floor(Math.random()*1000) + ".jpg";
         wx.cloud.uploadFile({
-          cloudPath: 'teacher_avatar/' + Date.now() + '.jpg',
-          filePath: res.tempFilePaths[0],
-          success: upRes => {
-            this.setData({ 'form.avatar': upRes.fileID });
+          cloudPath,
+          filePath,
+          success: uploadRes => {
+            this.setData({ 'form.avatar': uploadRes.fileID });
           }
         });
       }
     });
   },
-  chooseVideo() {
+  onNameInput(e) {
+    this.setData({ 'form.name': e.detail.value });
+  },
+  onIntroInput(e) {
+    this.setData({ 'form.intro': e.detail.value });
+  },
+  onSkillsInput(e) {
+    this.setData({ 'form.skillsStr': e.detail.value });
+  },
+  onUploadVideo() {
     wx.chooseVideo({
-      count: 1,
+      sourceType: ['album', 'camera'],
+      compressed: true,
+      maxDuration: 60,
       success: res => {
+        const filePath = res.tempFilePath;
+        const cloudPath = "teachers/video_" + Date.now() + "_" + Math.floor(Math.random()*1000) + ".mp4";
         wx.cloud.uploadFile({
-          cloudPath: 'teacher_video/' + Date.now() + '.mp4',
-          filePath: res.tempFilePaths[0],
-          success: upRes => {
-            this.setData({ 'form.video': upRes.fileID });
+          cloudPath,
+          filePath,
+          success: uploadRes => {
+            this.setData({ 'form.video': uploadRes.fileID });
           }
         });
       }
     });
   },
-  onNameInput(e) { this.setData({ 'form.name': e.detail.value }); },
-  onIntroInput(e) { this.setData({ 'form.intro': e.detail.value }); },
-  onSkillsInput(e) { this.setData({ 'form.skillsStr': e.detail.value }); },
+  onDeleteVideo() {
+    this.setData({ 'form.video': '' });
+  },
   onSubmit() {
     let { avatar, name, intro, skillsStr, video, editId } = this.data.form;
     if (!name) {
       wx.showToast({ title: '请填写姓名', icon: 'none' }); return;
     }
     let skills = skillsStr.split(/[，,]/).map(s=>s.trim()).filter(Boolean);
-    let data = { avatar, name, intro, skills, video };
+    let data = { avatar, name, intro, skills, video, createTime: new Date() };
     if (editId) {
       db.collection('teachers').doc(editId).update({
         data,
@@ -72,7 +87,6 @@ Page({
         }
       });
     } else {
-      data.createTime = new Date();
       db.collection('teachers').add({
         data,
         success: () => {
@@ -83,23 +97,23 @@ Page({
       });
     }
   },
-  onEdit(e) {
-    let id = e.currentTarget.dataset.id;
-    let teacher = this.data.teacherList.find(t=>t._id==id);
+  onEditTeacher(e) {
+    const id = e.currentTarget.dataset.id;
+    let teacher = this.data.teacherList.find(t => t._id === id);
     this.setData({
       form: {
         avatar: teacher.avatar,
         name: teacher.name,
         intro: teacher.intro,
-        skillsStr: teacher.skills.join('，'),
+        skillsStr: teacher.skills.join(','),
         skills: teacher.skills,
-        video: teacher.video,
-        editId: id
+        video: teacher.video || '',
+        editId: teacher._id
       }
     });
   },
-  onDelete(e) {
-    let id = e.currentTarget.dataset.id;
+  onDeleteTeacher(e) {
+    const id = e.currentTarget.dataset.id;
     db.collection('teachers').doc(id).remove({
       success: () => {
         wx.showToast({ title: '已删除' });

@@ -1,0 +1,53 @@
+<!--pages/youkekebiao/youkekebiao.wxml-->
+<view class="container">
+
+<!-- 顶部说明 -->
+<view class="top-tip">
+  <view class="public-title">公开课表（游客浏览）</view>
+  <view class="public-desc">仅浏览课表，需注册后才能约课</view>
+</view>
+
+<!-- 课程类型切换标签 -->
+<view class="tab-bar">
+  <view class="tab" wx:for="{{tabList}}" wx:key="type"
+    bindtap="onTabChange" data-type="{{item.type}}"
+    style="background:{{activeType==item.type?'#a78ee4':'#ede4f7'}};color:{{activeType==item.type?'#fff':'#7a3fc3'}};">
+    {{item.label}}
+  </view>
+</view>
+
+<!-- 周切换标签 -->
+<view class="week-bar">
+  <view class="week-tab" wx:for="{{weekList}}" wx:key="index"
+    bindtap="onWeekChange" data-index="{{index}}"
+    style="background:{{activeWeekIndex==index?'#a78ee4':'#ede4f7'}};color:{{activeWeekIndex==index?'#fff':'#7a3fc3'}};">
+    {{item.label}}
+  </view>
+</view>
+
+<!-- 课表内容区块 -->
+<view class="table-section">
+  <view class="table-title">{{activeType=='group'?'团课课表':'私教课表'}}</view>
+  <block wx:if="{{courseList.length > 0}}">
+    <block wx:for="{{courseList}}" wx:key="date">
+      <view class="course-row">
+        <view class="course-date">{{item.date}}</view>
+        <block wx:for="{{item.lessons}}" wx:for-item="lesson" wx:key="startTime">
+          <view class="lesson-card">
+            <view class="lesson-info">
+              <view class="lesson-time">{{lesson.startTime}} - {{lesson.endTime}}</view>
+              <view class="lesson-content">{{lesson.content}}</view>
+              <view class="lesson-teacher">老师：{{lesson.teacher}}</view>
+            </view>
+            <button class="disabled-btn" disabled>约课（需注册）</button>
+          </view>
+        </block>
+      </view>
+    </block>
+  </block>
+  <block wx:else>
+    <view class="empty-tip">本周暂无课程</view>
+  </block>
+</view>
+
+</view>

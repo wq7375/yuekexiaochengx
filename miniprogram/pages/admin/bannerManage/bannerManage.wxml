@@ -1,18 +1,16 @@
 <!--pages/admin/bannerManage/bannerManage.wxml-->
-<view class="banner-manage">
-  <view class="add-section">
-    <button type="primary" bindtap="chooseBannerImage">上传新轮播图</button>
-    <image wx:if="{{newBannerImage}}" src="{{newBannerImage}}" class="preview-img"/>
-    <input wx:if="{{newBannerImage}}" placeholder="可选：图片描述" bindinput="onDescInput"/>
-    <button wx:if="{{newBannerImage}}" type="primary" bindtap="addBanner">添加轮播图</button>
-  </view>
+<view class="container">
+  <view class="title">轮播图管理</view>
+  <block wx:if="{{banners.length === 0}}">
+    <view class="empty-tip">暂无轮播图，请点击下方添加</view>
+  </block>
   <view class="banner-list">
-    <view wx:for="{{bannerList}}" wx:key="_id" class="banner-row">
-      <image src="{{item.image}}" class="banner-thumb"/>
-      <view class="banner-info">
-        <text>{{item.desc}}</text>
+    <block wx:for="{{banners}}" wx:key="index">
+      <view class="banner-item">
+        <image src="{{item.url}}" class="banner-img"/>
+        <button size="mini" class="del-btn" data-id="{{item._id}}" bindtap="onDeleteBanner">删除</button>
       </view>
-      <button size="mini" bindtap="onDeleteBanner" data-id="{{item._id}}">删除</button>
-    </view>
+    </block>
   </view>
+  <button class="add-btn" bindtap="onAddBanner">添加轮播图</button>
 </view>
