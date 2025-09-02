@@ -11,148 +11,238 @@ const cardTypes = [
 
 Page({
   data: {
+    // 顶部标签：list | addStudent | addAdmin
+    currentTab: 'list',
+
+    // 列表
     peopleList: [],
+
+    // 表单
+    editingId: null, // 有值表示更新，无值表示新增
     name: '',
     phone: '',
-    role: 'student',
-    editingId: null,
+    role: 'student', // student | admin
+
+    // 学员卡编辑
     cardTypes,
-    // 卡编辑区
-    newCardTypeIndex: 0, // picker选中索引
-    newCardExpireDate: '',
+    showCardEditor: false,
+    cards: [],
+    newCardTypeIndex: 0,
+    selectedCardLabel: cardTypes[0].label,
     newCardRemainCount: null,
-    cards: [], // 当前学员的所有卡
-    selectedCardLabel: cardTypes[0].label // 当前picker选中的卡类型label
+    newCardExpireDate: ''
   },
+
   onLoad() {
     this.getPeopleList();
   },
+
+  // 切换顶部标签
+  onSwitchTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    if (tab === this.data.currentTab) return;
+
+    if (tab === 'addStudent') {
+      this.resetForm();
+      this.setData({ currentTab: tab, role: 'student' });
+    } else if (tab === 'addAdmin') {
+      this.resetForm();
+      this.setData({ currentTab: tab, role: 'admin' });
+    } else {
+      // 返回列表
+      this.setData({ currentTab: 'list' });
+      this.resetForm();
+    }
+  },
+
+  // 拉取列表
   getPeopleList() {
     db.collection('people').get({
       success: res => {
         this.setData({ peopleList: res.data });
+      },
+      fail: err => {
+        wx.showToast({ title: '加载列表失败', icon: 'none' });
+        console.error('getPeopleList fail', err);
       }
-    })
+    });
   },
+
+  // 表单输入
   onNameInput(e) { this.setData({ name: e.detail.value }); },
   onPhoneInput(e) { this.setData({ phone: e.detail.value }); },
-  onRoleChange(e) {
-    const role = ['student', 'admin'][e.detail.value];
-    this.setData({ role });
+
+  // 学员卡交互
+  toggleCardEditor() {
+    this.setData({ showCardEditor: !this.data.showCardEditor });
   },
   onCardTypeChange(e) {
     const idx = Number(e.detail.value);
     this.setData({
       newCardTypeIndex: idx,
-      selectedCardLabel: cardTypes[idx].label
+      selectedCardLabel: this.data.cardTypes[idx].label
     });
   },
-  onExpireDateInput(e) { this.setData({ newCardExpireDate: e.detail.value }); },
-  onRemainCountInput(e) { this.setData({ newCardRemainCount: Number(e.detail.value) }); },
-
-  // 添加卡
+  onRemainCountInput(e) {
+    const v = e.detail.value;
+    this.setData({ newCardRemainCount: v === '' ? null : Number(v) });
+  },
+  onExpireDateChange(e) {
+    this.setData({ newCardExpireDate: e.detail.value });
+  },
   onAddCard() {
     const idx = this.data.newCardTypeIndex;
-    const typeObj = cardTypes[idx];
-    let cardObj = {
+    const typeObj = this.data.cardTypes[idx];
+
+    const card = {
       category: typeObj.category,
       type: typeObj.type,
       label: typeObj.label
     };
+
     if (typeObj.type === 'count' || typeObj.type === 'private') {
-      cardObj.remainCount = this.data.newCardRemainCount || 0;
+      card.remainCount = this.data.newCardRemainCount || 0;
     } else {
-      cardObj.expireDate = this.data.newCardExpireDate;
+      if (!this.data.newCardExpireDate) {
+        wx.showToast({ title: '请选择到期日期', icon: 'none' });
+        return;
+      }
+      card.expireDate = this.data.newCardExpireDate;
     }
+
     this.setData({
-      cards: [...this.data.cards, cardObj],
-      // 重置输入
+      cards: [...this.data.cards, card],
+      // 重置卡输入
       newCardTypeIndex: 0,
-      selectedCardLabel: cardTypes[0].label,
-      newCardExpireDate: '',
-      newCardRemainCount: null
+      selectedCardLabel: this.data.cardTypes[0].label,
+      newCardRemainCount: null,
+      newCardExpireDate: ''
     });
   },
-  // 删除卡
   onDeleteCard(e) {
-    const idx = e.currentTarget.dataset.index;
-    let cards = this.data.cards.slice();
+    const idx = Number(e.currentTarget.dataset.index);
+    const cards = this.data.cards.slice();
     cards.splice(idx, 1);
     this.setData({ cards });
   },
-  // 编辑学员/管理员，只能编辑已有
+
+  // 编辑：跳转至对应标签并填充数据
   onEdit(e) {
-    const { id, name, phone, role, cards } = e.currentTarget.dataset;
-    // 找到当前卡类型idx
-    let newCardTypeIndex = 0;
-    let selectedCardLabel = this.data.cardTypes[0].label;
+    const id = e.currentTarget.dataset.id;
+    const p = this.data.peopleList.find(x => x._id === id);
+    if (!p) return;
+
     this.setData({
-      editingId: id,
-      name, phone, role,
-      cards: cards || [],
-      newCardTypeIndex,
-      selectedCardLabel
+      editingId: p._id,
+      name: p.name || '',
+      phone: p.phone || '',
+      role: p.role || 'student',
+      cards: p.role === 'student' ? (p.cards || []) : [],
+      showCardEditor: false,
+      newCardTypeIndex: 0,
+      selectedCardLabel: this.data.cardTypes[0].label,
+      newCardRemainCount: null,
+      newCardExpireDate: '',
+      currentTab: p.role === 'admin' ? 'addAdmin' : 'addStudent'
     });
   },
-  onCancelEdit() {
-    this.setData({
-      editingId: null, name: '', phone: '', role: 'student', cards: []
-    });
-  },
-  // 删除学员/管理员
+
+  // 删除
   onDelete(e) {
     const id = e.currentTarget.dataset.id;
-    db.collection('people').doc(id).remove({
-      success: () => {
-        wx.showToast({ title: '删除成功' });
-        this.getPeopleList();
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后不可恢复，确定删除？',
+      success: modalRes => {
+        if (!modalRes.confirm) return;
+        db.collection('people').doc(id).remove({
+          success: () => {
+            wx.showToast({ title: '删除成功' });
+            this.getPeopleList();
+            // 若正在编辑这条，重置并返回列表
+            if (this.data.editingId === id) {
+              this.resetForm();
+              this.setData({ currentTab: 'list' });
+            }
+          },
+          fail: err => {
+            wx.showToast({ title: '删除失败', icon: 'none' });
+            console.error('delete fail', err);
+          }
+        });
       }
     });
   },
-  // 只允许更新，不允许新增
+
+  // 保存（新增/更新）
   onSubmit() {
-    const { name, phone, role, cards, editingId } = this.data;
-    if (!name || !phone || !role) {
-      wx.showToast({ title: '请填写完整信息', icon: 'none' });
+    const { editingId, name, phone, role, cards } = this.data;
+
+    if (!name) {
+      wx.showToast({ title: '请填写姓名', icon: 'none' });
       return;
     }
-    let userData = { name, phone, role };
-    if (role === 'student') {
-      userData.cards = cards;
+    if (!phone) {
+      wx.showToast({ title: '请填写手机号', icon: 'none' });
+      return;
     }
+
+    const data = { name, phone, role };
+    if (role === 'student') data.cards = cards || [];
+
     if (editingId) {
+      // 更新
       db.collection('people').doc(editingId).update({
-        data: userData,
+        data,
         success: () => {
           wx.showToast({ title: '更新成功' });
-          this.setData({
-            editingId: null, name: '', phone: '', role: 'student', cards: []
-          });
           this.getPeopleList();
+          this.resetForm();
+          this.setData({ currentTab: 'list' });
+        },
+        fail: err => {
+          wx.showToast({ title: '更新失败', icon: 'none' });
+          console.error('update fail', err);
+        }
+      });
+    } else {
+      // 新增
+      db.collection('people').add({
+        data,
+        success: () => {
+          wx.showToast({ title: '添加成功' });
+          this.getPeopleList();
+          this.resetForm();
+          this.setData({ currentTab: 'list' });
+        },
+        fail: err => {
+          wx.showToast({ title: '添加失败', icon: 'none' });
+          console.error('add fail', err);
         }
       });
     }
   },
-  // 升级为管理员
-  onSetAdmin(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.showModal({
-      title: '升级为管理员',
-      content: '确定要将此用户升级为管理员吗？',
-      success: res => {
-        if (res.confirm) {
-          db.collection('people').doc(id).update({
-            data: { role: 'admin' },
-            success: () => {
-              wx.showToast({ title: '已升级为管理员' });
-              this.getPeopleList();
-            },
-            fail: () => {
-              wx.showToast({ title: '升级失败', icon: 'none' });
-            }
-          });
-        }
-      }
+
+  // 取消
+  onCancel() {
+    this.resetForm();
+    this.setData({ currentTab: 'list' });
+  },
+
+  // 重置表单
+  resetForm() {
+    this.setData({
+      editingId: null,
+      name: '',
+      phone: '',
+      role: 'student',
+      cards: [],
+      showCardEditor: false,
+      newCardTypeIndex: 0,
+      selectedCardLabel: this.data.cardTypes[0].label,
+      newCardRemainCount: null,
+      newCardExpireDate: ''
     });
   }
 });
+

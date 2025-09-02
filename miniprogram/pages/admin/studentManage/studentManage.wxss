@@ -3,6 +3,48 @@
   background: #f7f8fa;
   min-height: 100vh;
 }
+/* 顶部标签容器 */
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: sticky; /* 滚动时固定在顶部 */
+  top: 0;
+  z-index: 10;
+}
+
+/* 单个标签 */
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 15px;
+  color: #666;
+  transition: all 0.25s ease;
+  border-bottom: 3px solid transparent;
+}
+
+/* 点击/悬停反馈 */
+.tab:active {
+  background-color: #f5f5f5;
+}
+
+/* 激活状态 */
+.tab.active {
+  color: #007aff; /* 微信蓝 */
+  font-weight: bold;
+  border-bottom: 3px solid #007aff;
+}
+
+/* 可选：让文字更圆润 */
+.tab {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+
 .form-card {
   background: #fff;
   border-radius: 16rpx;

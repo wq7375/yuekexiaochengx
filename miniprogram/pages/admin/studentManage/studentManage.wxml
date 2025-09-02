@@ -1,88 +1,116 @@
 <view class="container">
-  <view class="list-title">学员/管理员列表</view>
+
+<!-- 顶部标签 -->
+<view class="tabs">
+  <view class="tab {{currentTab==='list'?'active':''}}" data-tab="list" bindtap="onSwitchTab">学员/管理员列表</view>
+  <view class="tab {{currentTab==='addStudent'?'active':''}}" data-tab="addStudent" bindtap="onSwitchTab">新增学员</view>
+  <view class="tab {{currentTab==='addAdmin'?'active':''}}" data-tab="addAdmin" bindtap="onSwitchTab">新增管理员</view>
+</view>
+
+<!-- 列表页 -->
+<view wx:if="{{currentTab==='list'}}" class="panel">
   <scroll-view class="list-scroll" scroll-y="true">
-    <block wx:for="{{peopleList}}" wx:key="_id">
+    <block wx:for="{{peopleList}}" wx:key="_id" wx:for-item="p">
       <view class="list-item">
         <view class="info-main">
           <view class="name">
-            {{item.name}} 
-            <text class="role-tag {{item.role}}">
-              {{item.role == 'admin' ? '管理员' : '学员'}}
-            </text>
+            {{p.name}}
+            <text class="role-tag {{p.role}}">{{p.role=='admin'?'管理员':'学员'}}</text>
           </view>
-          <view class="phone">手机号：{{item.phone}}</view>
-          <view wx:if="{{item.role=='student'}}">
-            <view wx:for="{{item.cards}}" wx:key="index" class="card">
-              <text>
-                {{item.cards[index].label}}
-                <text wx:if="{{item.cards[index].remainCount!==undefined}}"> | 剩余：{{item.cards[index].remainCount}}次</text>
-                <text wx:if="{{item.cards[index].expireDate}}"> | 到期：{{item.cards[index].expireDate}}</text>
-              </text>
+          <view class="phone">手机号：{{p.phone}}</view>
+
+          <view wx:if="{{p.role=='student'}}">
+            <view class="card" wx:for="{{p.cards}}" wx:key="index" wx:for-item="c" wx:for-index="idx">
+              <text>{{c.label}}</text>
+              <text wx:if="{{c.remainCount!==undefined}}"> | 剩余：{{c.remainCount}}次</text>
+              <text wx:if="{{c.expireDate}}"> | 到期：{{c.expireDate}}</text>
             </view>
           </view>
         </view>
+
         <view class="info-action">
-          <button size="mini" class="edit-btn"
-            data-id="{{item._id}}"
-            data-name="{{item.name}}"
-            data-phone="{{item.phone}}"
-            data-role="{{item.role}}"
-            data-cards="{{item.cards}}"
-            bindtap="onEdit"
-          >编辑</button>
-          <button size="mini" class="delete-btn" data-id="{{item._id}}" bindtap="onDelete">删除</button>
-          <button 
-            wx:if="{{item.role !== 'admin'}}" 
-            size="mini" 
-            class="admin-btn" 
-            data-id="{{item._id}}" 
-            bindtap="onSetAdmin"
-          >升级为管理员</button>
+          <button size="mini" class="edit-btn" data-id="{{p._id}}" bindtap="onEdit">编辑</button>
+          <button size="mini" class="delete-btn" data-id="{{p._id}}" bindtap="onDelete">删除</button>
         </view>
       </view>
     </block>
   </scroll-view>
+</view>
 
-  <!-- 编辑弹窗/区 -->
-  <view wx:if="{{editingId}}" class="form-card edit-card">
-    <view class="form-title">编辑学员/管理员</view>
+<!-- 新增/编辑 学员 -->
+<view wx:if="{{currentTab==='addStudent'}}" class="panel">
+  <view class="form-title">{{editingId?'编辑学员':'新增学员'}}</view>
+
+  <view class="form-row">
+    <input class="input" placeholder="姓名" value="{{name}}" bindinput="onNameInput" />
+  </view>
+
+  <view class="form-row">
+    <input class="input" placeholder="手机号" type="number" value="{{phone}}" bindinput="onPhoneInput" />
+  </view>
+
+  <!-- 卡设置 开关 -->
+  <view class="card-title" bindtap="toggleCardEditor">
+    学员卡设置
+    <text class="toggle">{{showCardEditor?'（收起）':'（展开）'}}</text>
+  </view>
+
+  <!-- 卡设置区域 -->
+  <view wx:if="{{showCardEditor}}">
     <view class="form-row">
-      <input class="input" placeholder="姓名" bindinput="onNameInput" value="{{name}}" />
-    </view>
-    <view class="form-row">
-      <input class="input" placeholder="手机号" type="number" bindinput="onPhoneInput" value="{{phone}}" />
-    </view>
-    <view class="form-row">
-      <picker range="{{['student', 'admin']}}" bindchange="onRoleChange">
-        <view class="picker-text">身份：{{role}}</view>
+      <picker range="{{cardTypes}}" range-key="label" bindchange="onCardTypeChange">
+        <view class="picker-text">卡类型：{{selectedCardLabel}}</view>
       </picker>
     </view>
-    <view wx:if="{{role=='student'}}">
-      <view class="card-title">学员卡设置</view>
-      <view class="form-row">
-        <picker range="{{cardTypes}}" range-key="label" bindchange="onCardTypeChange">
-          <view class="picker-text">卡类型：{{selectedCardLabel}}</view>
-        </picker>
-      </view>
-      <view class="form-row" wx:if="{{cardTypes[newCardTypeIndex].type=='count' || cardTypes[newCardTypeIndex].type=='private'}}">
-        <input class="input" type="number" placeholder="剩余次数" bindinput="onRemainCountInput" value="{{newCardRemainCount}}" />
-      </view>
-      <view class="form-row" wx:if="{{cardTypes[newCardTypeIndex].type!='count' && cardTypes[newCardTypeIndex].type!='private'}}">
-        <input class="input" type="date" placeholder="到期日期" bindinput="onExpireDateInput" value="{{newCardExpireDate}}" />
-      </view>
-      <button class="add-card-btn" bindtap="onAddCard">添加卡</button>
-      <view class="card-list">
-        <block wx:for="{{cards}}" wx:key="index">
-          <view class="card-item">
-            <text>{{item.label}}</text>
-            <text wx:if="{{item.remainCount!==undefined}}"> | 剩余次数: {{item.remainCount}}</text>
-            <text wx:if="{{item.expireDate}}"> | 到期: {{item.expireDate}}</text>
-            <button class="delete-card-btn" size="mini" data-index="{{index}}" bindtap="onDeleteCard">删除</button>
-          </view>
-        </block>
-      </view>
+
+    <view class="form-row" wx:if="{{cardTypes[newCardTypeIndex].type=='count' || cardTypes[newCardTypeIndex].type=='private'}}">
+      <input class="input" type="number" placeholder="剩余次数" value="{{newCardRemainCount}}" bindinput="onRemainCountInput" />
     </view>
-    <button class="primary-btn" bindtap="onSubmit">保存</button>
-    <button class="cancel-btn" bindtap="onCancelEdit">取消</button>
+
+    <view class="form-row" wx:if="{{cardTypes[newCardTypeIndex].type!='count' && cardTypes[newCardTypeIndex].type!='private'}}">
+      <picker mode="date" value="{{newCardExpireDate}}" bindchange="onExpireDateChange">
+        <view class="picker-text">到期日期：{{newCardExpireDate||'请选择日期'}}</view>
+      </picker>
+    </view>
+
+    <button class="add-card-btn" bindtap="onAddCard">添加卡</button>
+
+    <view class="card-list">
+      <block wx:for="{{cards}}" wx:key="index" wx:for-item="c" wx:for-index="idx">
+        <view class="card-item">
+          <text>{{c.label}}</text>
+          <text wx:if="{{c.remainCount!==undefined}}"> | 剩余次数: {{c.remainCount}}</text>
+          <text wx:if="{{c.expireDate}}"> | 到期: {{c.expireDate}}</text>
+          <button class="delete-card-btn" size="mini" data-index="{{idx}}" bindtap="onDeleteCard">删除</button>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="form-actions">
+    <button class="primary-btn" bindtap="onSubmit">{{editingId?'保存修改':'保存'}}</button>
+    <button class="cancel-btn" bindtap="onCancel">取消</button>
   </view>
 </view>
+
+<!-- 新增/编辑 管理员（无卡片） -->
+<view wx:if="{{currentTab==='addAdmin'}}" class="panel">
+  <view class="form-title">{{editingId?'编辑管理员':'新增管理员'}}</view>
+
+  <view class="form-row">
+    <input class="input" placeholder="姓名" value="{{name}}" bindinput="onNameInput" />
+  </view>
+
+  <view class="form-row">
+    <input class="input" placeholder="手机号" type="number" value="{{phone}}" bindinput="onPhoneInput" />
+  </view>
+
+  <view class="form-actions">
+    <button class="primary-btn" bindtap="onSubmit">{{editingId?'保存修改':'保存'}}</button>
+    <button class="cancel-btn" bindtap="onCancel">取消</button>
+  </view>
+</view>
+
+</view>
+
+
