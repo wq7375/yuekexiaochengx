@@ -9,6 +9,13 @@
     <button class="week-btn {{weekOffset==0?'active':''}}" bindtap="showThisWeek">本周课表</button>
     <button class="week-btn {{weekOffset==7?'active':''}}" bindtap="showNextWeek">下周课表</button>
   </view>
+  <!-- 卡片选择器 -->
+  <picker mode="selector" range="{{userCards}}" range-key="label" value="{{cardLabelIndex}}" bindchange="onCardChange">
+    <view class="card-picker-row">
+      <text>当前选择卡：</text>
+      <text style="color:#1890ff">{{userCards.length>0 ? userCards[cardLabelIndex].label : '无卡'}}</text>
+    </view>
+  </picker>
   <!-- 日期滑动选择 -->
   <scroll-view scroll-x class="date-bar">
     <block wx:for="{{weekDates}}" wx:key="date">
@@ -16,21 +23,21 @@
     </block>
   </scroll-view>
   <view class="lesson-list">
-  <block wx:for="{{lessons}}" wx:key="index">
-    <view class="lesson-card">
-      <view class="lesson-time">时间：{{item.startTime}} - {{item.endTime}}</view>
-      <view class="lesson-info"><text class="lesson-label">老师：</text><text>{{item.teacher}}</text></view>
-      <view class="lesson-info"><text class="lesson-label">内容：</text><text>{{item.content}}</text></view>
-      <view class="lesson-info"><text class="lesson-label">人数：</text><text>{{item.bookedCount}}/{{item.maxCount}}</text></view>
-      <view class="btn-bar">
-        <button class="book-btn" size="mini" data-index="{{index}}" bindtap="bookLesson" wx:if="{{item.canBook}}">预约</button>
-        <button class="cancel-btn" size="mini" data-index="{{index}}" bindtap="cancelLesson" wx:if="{{item.hasBooked}}">取消预约</button>
-        <button class="book-btn full" size="mini" disabled wx:if="{{!item.canBook && !item.hasBooked}}">
-          {{item.bookTimeTip || '已约满'}}
-        </button>
+    <block wx:for="{{lessons}}" wx:key="index">
+      <view class="lesson-card">
+        <view class="lesson-time">时间：{{item.startTime}} - {{item.endTime}}</view>
+        <view class="lesson-info"><text class="lesson-label">老师：</text><text>{{item.teacher}}</text></view>
+        <view class="lesson-info"><text class="lesson-label">内容：</text><text>{{item.content}}</text></view>
+        <view class="lesson-info"><text class="lesson-label">人数：</text><text>{{item.bookedCount}}/{{item.maxCount}}</text></view>
+        <view class="btn-bar">
+          <button class="book-btn" size="mini" data-index="{{index}}" bindtap="bookLesson" wx:if="{{item.canBook}}">预约</button>
+          <button class="cancel-btn" size="mini" data-index="{{index}}" bindtap="cancelLesson" wx:if="{{item.hasBooked}}">取消预约</button>
+          <button class="book-btn full" size="mini" disabled wx:if="{{!item.canBook && !item.hasBooked}}">
+            {{item.bookTimeTip || '已约满'}}
+          </button>
+        </view>
       </view>
-    </view>
-  </block>
-  <view wx:if="{{lessons.length==0}}" class="empty-tip">当天暂无课程</view>
-</view>
+    </block>
+    <view wx:if="{{lessons.length==0}}" class="empty-tip">当天暂无课程</view>
+  </view>
 </view>

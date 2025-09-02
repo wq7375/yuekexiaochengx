@@ -1,6 +1,51 @@
 <view class="container">
-  <view class="form-card">
-    <view class="form-title">{{editingId ? "编辑学员/管理员" : "新增学员/管理员"}}</view>
+  <view class="list-title">学员/管理员列表</view>
+  <scroll-view class="list-scroll" scroll-y="true">
+    <block wx:for="{{peopleList}}" wx:key="_id">
+      <view class="list-item">
+        <view class="info-main">
+          <view class="name">
+            {{item.name}} 
+            <text class="role-tag {{item.role}}">
+              {{item.role == 'admin' ? '管理员' : '学员'}}
+            </text>
+          </view>
+          <view class="phone">手机号：{{item.phone}}</view>
+          <view wx:if="{{item.role=='student'}}">
+            <view wx:for="{{item.cards}}" wx:key="index" class="card">
+              <text>
+                {{item.cards[index].label}}
+                <text wx:if="{{item.cards[index].remainCount!==undefined}}"> | 剩余：{{item.cards[index].remainCount}}次</text>
+                <text wx:if="{{item.cards[index].expireDate}}"> | 到期：{{item.cards[index].expireDate}}</text>
+              </text>
+            </view>
+          </view>
+        </view>
+        <view class="info-action">
+          <button size="mini" class="edit-btn"
+            data-id="{{item._id}}"
+            data-name="{{item.name}}"
+            data-phone="{{item.phone}}"
+            data-role="{{item.role}}"
+            data-cards="{{item.cards}}"
+            bindtap="onEdit"
+          >编辑</button>
+          <button size="mini" class="delete-btn" data-id="{{item._id}}" bindtap="onDelete">删除</button>
+          <button 
+            wx:if="{{item.role !== 'admin'}}" 
+            size="mini" 
+            class="admin-btn" 
+            data-id="{{item._id}}" 
+            bindtap="onSetAdmin"
+          >升级为管理员</button>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- 编辑弹窗/区 -->
+  <view wx:if="{{editingId}}" class="form-card edit-card">
+    <view class="form-title">编辑学员/管理员</view>
     <view class="form-row">
       <input class="input" placeholder="姓名" bindinput="onNameInput" value="{{name}}" />
     </view>
@@ -12,7 +57,6 @@
         <view class="picker-text">身份：{{role}}</view>
       </picker>
     </view>
-    <!-- 学员才显示卡编辑区 -->
     <view wx:if="{{role=='student'}}">
       <view class="card-title">学员卡设置</view>
       <view class="form-row">
@@ -38,37 +82,7 @@
         </block>
       </view>
     </view>
-    <button class="primary-btn" bindtap="onSubmit">{{editingId ? '更新' : '新增'}}</button>
+    <button class="primary-btn" bindtap="onSubmit">保存</button>
+    <button class="cancel-btn" bindtap="onCancelEdit">取消</button>
   </view>
-  <view class="list-title">学员/管理员列表</view>
-  <scroll-view class="list-scroll" scroll-y="true">
-    <block wx:for="{{peopleList}}" wx:key="_id">
-      <view class="list-item">
-        <view class="info-main">
-          <view class="name">{{item.name}} <text class="role-tag {{item.role}}">{{item.role == 'admin' ? '管理员' : '学员'}}</text></view>
-          <view class="phone">手机号：{{item.phone}}</view>
-          <view wx:if="{{item.role=='student'}}">
-            <view wx:for="{{item.cards}}" wx:key="index" class="card">
-              <text>
-                {{item.cards[index].label}}
-                <text wx:if="{{item.cards[index].remainCount!==undefined}}"> | 剩余：{{item.cards[index].remainCount}}次</text>
-                <text wx:if="{{item.cards[index].expireDate}}"> | 到期：{{item.cards[index].expireDate}}</text>
-              </text>
-            </view>
-          </view>
-        </view>
-        <view class="info-action">
-          <button size="mini" class="edit-btn"
-            data-id="{{item._id}}"
-            data-name="{{item.name}}"
-            data-phone="{{item.phone}}"
-            data-role="{{item.role}}"
-            data-cards="{{item.cards}}"
-            bindtap="onEdit"
-          >编辑</button>
-          <button size="mini" class="delete-btn" data-id="{{item._id}}" bindtap="onDelete">删除</button>
-        </view>
-      </view>
-    </block>
-  </scroll-view>
 </view>

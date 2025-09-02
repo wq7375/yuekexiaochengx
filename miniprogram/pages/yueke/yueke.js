@@ -27,6 +27,25 @@ function isCanBook(courseDate, startTime) {
   return now >= openTime && now < closeTime;
 }
 
+// 工具：预约时间提示
+function getBookTimeTip(courseDate, startTime) {
+  const now = new Date();
+  const courseDay = new Date(courseDate + 'T' + startTime + ':00');
+  const openTime = new Date(courseDay);
+  openTime.setDate(openTime.getDate() - 2);
+  openTime.setHours(10, 0, 0, 0);
+  const closeTime = new Date(courseDay);
+  closeTime.setHours(closeTime.getHours() - 2);
+
+  if (now < openTime) {
+    return '提前两天早上10点开始预约';
+  }
+  if (now >= closeTime) {
+    return '已截止预约';
+  }
+  return '';
+}
+
 Page({
   data: {
     weekStart: '',
@@ -38,7 +57,9 @@ Page({
     userId: '',
     userName: '',
     weekOffset: 0, // 0:本周 7:下周
-    cardType: '', // 增加：学生的卡类型
+    userCards: [], // 当前用户所有卡
+    cardLabelIndex: 0, // 当前选中卡下标
+    cardLabel: '', // 当前选中卡的label
   },
 
   onLoad() {
@@ -59,16 +80,22 @@ Page({
         db.collection('people').where({ _openid: openid, role: 'student' }).get({
           success: res2 => {
             if (res2.data.length) {
+              const user = res2.data[0];
+              const cards = user.cards || [];
               this.setData({
                 userId: openid,
-                userName: res2.data[0].name,
-                cardType: res2.data[0].cardType, // 获取卡类型，便于云函数判断
+                userName: user.name,
+                userCards: cards,
+                cardLabelIndex: 0,
+                cardLabel: cards.length > 0 ? cards[0].label : ''
               });
             } else {
               this.setData({
                 userId: openid,
                 userName: '未知',
-                cardType: ''
+                userCards: [],
+                cardLabelIndex: 0,
+                cardLabel: ''
               });
             }
             this.initWeek();
@@ -77,7 +104,9 @@ Page({
             this.setData({
               userId: openid,
               userName: '未知',
-              cardType: ''
+              userCards: [],
+              cardLabelIndex: 0,
+              cardLabel: ''
             });
             this.initWeek();
           }
@@ -86,6 +115,16 @@ Page({
       fail: () => {
         wx.showToast({ title: '未获取到用户身份', icon: 'none' });
       }
+    });
+  },
+
+  // 卡片选择器
+  onCardChange(e) {
+    const idx = e.detail.value;
+    const cards = this.data.userCards;
+    this.setData({
+      cardLabelIndex: idx,
+      cardLabel: cards.length > 0 ? cards[idx].label : ''
     });
   },
 
@@ -194,19 +233,22 @@ Page({
       wx.showToast({ title: '请先完善学生信息', icon: 'none' });
       return;
     }
+    if (!this.data.cardLabel) {
+      wx.showToast({ title: '请选择卡片', icon: 'none' });
+      return;
+    }
 
-    // 新增：调用云函数，先扣卡
     wx.cloud.callFunction({
       name: 'reserveClass',
       data: {
         studentId: this.data.userId,
-        scheduleId: lesson.scheduleId || '',  // 如果有scheduleId则传
+        scheduleId: lesson.scheduleId || '',
         action: 'reserve',
-        cardType: this.data.cardType
+        cardLabel: this.data.cardLabel,
+        isForce: false
       },
       success: res => {
         if (res.result.success) {
-          // 若扣卡成功，再写schedules和booking表，保持你原有逻辑
           wx.cloud.callFunction({
             name: 'updateSchedule',
             data: {
@@ -217,7 +259,8 @@ Page({
               action: 'book',
               student: {
                 studentId: this.data.userId,
-                name: this.data.userName
+                name: this.data.userName,
+                cardLabel: this.data.cardLabel // 建议记录cardLabel
               }
             },
             success: res2 => {
@@ -226,6 +269,7 @@ Page({
                   data: {
                     studentOpenid: this.data.userId,
                     name: this.data.userName,
+                    cardLabel: this.data.cardLabel,
                     courseDate: this.data.selectedDate,
                     courseType: this.data.selectedType,
                     lessonIndex: index,
@@ -266,15 +310,19 @@ Page({
       wx.showToast({ title: '未预约', icon: 'none' });
       return;
     }
+    if (!this.data.cardLabel) {
+      wx.showToast({ title: '请选择卡片', icon: 'none' });
+      return;
+    }
 
-    // 新增：调用云函数，返还卡次数（如需要）
     wx.cloud.callFunction({
       name: 'reserveClass',
       data: {
         studentId: this.data.userId,
         scheduleId: lesson.scheduleId || '',
         action: 'cancel',
-        cardType: this.data.cardType
+        cardLabel: this.data.cardLabel,
+        isForce: false
       },
       success: res => {
         // 继续原有逻辑，同步schedules和booking表
@@ -296,7 +344,8 @@ Page({
                   courseDate: this.data.selectedDate,
                   courseType: this.data.selectedType,
                   lessonIndex: index,
-                  weekStart: this.data.weekStart
+                  weekStart: this.data.weekStart,
+                  cardLabel: this.data.cardLabel
                 }).get({
                   success: bookingRes => {
                     if (bookingRes.data.length) {
@@ -324,22 +373,3 @@ Page({
     });
   }
 });
-
-// 获取预约时间提示
-function getBookTimeTip(courseDate, startTime) {
-  const now = new Date();
-  const courseDay = new Date(courseDate + 'T' + startTime + ':00');
-  const openTime = new Date(courseDay);
-  openTime.setDate(openTime.getDate() - 2);
-  openTime.setHours(10, 0, 0, 0);
-  const closeTime = new Date(courseDay);
-  closeTime.setHours(closeTime.getHours() - 2);
-
-  if (now < openTime) {
-    return '提前两天早上10点开始预约';
-  }
-  if (now >= closeTime) {
-    return '已截止预约';
-  }
-  return '';
-}

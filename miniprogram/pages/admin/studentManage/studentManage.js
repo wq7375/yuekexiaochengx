@@ -80,13 +80,23 @@ Page({
     cards.splice(idx, 1);
     this.setData({ cards });
   },
-  // 编辑学员/管理员
+  // 编辑学员/管理员，只能编辑已有
   onEdit(e) {
     const { id, name, phone, role, cards } = e.currentTarget.dataset;
+    // 找到当前卡类型idx
+    let newCardTypeIndex = 0;
+    let selectedCardLabel = this.data.cardTypes[0].label;
     this.setData({
       editingId: id,
       name, phone, role,
-      cards: cards || []
+      cards: cards || [],
+      newCardTypeIndex,
+      selectedCardLabel
+    });
+  },
+  onCancelEdit() {
+    this.setData({
+      editingId: null, name: '', phone: '', role: 'student', cards: []
     });
   },
   // 删除学员/管理员
@@ -99,7 +109,7 @@ Page({
       }
     });
   },
-  // 新增或更新学员/管理员
+  // 只允许更新，不允许新增
   onSubmit() {
     const { name, phone, role, cards, editingId } = this.data;
     if (!name || !phone || !role) {
@@ -109,7 +119,6 @@ Page({
     let userData = { name, phone, role };
     if (role === 'student') {
       userData.cards = cards;
-      // 新增时不填openid，等学生首次登录时自动补全
     }
     if (editingId) {
       db.collection('people').doc(editingId).update({
@@ -122,17 +131,28 @@ Page({
           this.getPeopleList();
         }
       });
-    } else {
-      db.collection('people').add({
-        data: userData,
-        success: () => {
-          wx.showToast({ title: '添加成功' });
-          this.setData({
-            name: '', phone: '', role: 'student', cards: []
-          });
-          this.getPeopleList();
-        }
-      });
     }
+  },
+  // 升级为管理员
+  onSetAdmin(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '升级为管理员',
+      content: '确定要将此用户升级为管理员吗？',
+      success: res => {
+        if (res.confirm) {
+          db.collection('people').doc(id).update({
+            data: { role: 'admin' },
+            success: () => {
+              wx.showToast({ title: '已升级为管理员' });
+              this.getPeopleList();
+            },
+            fail: () => {
+              wx.showToast({ title: '升级失败', icon: 'none' });
+            }
+          });
+        }
+      }
+    });
   }
 });
