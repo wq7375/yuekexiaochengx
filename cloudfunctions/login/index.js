@@ -13,7 +13,7 @@ exports.main = async (event, context) => {
   }).get()
 
   if (userRes.data.length > 0) {
-    return { role: userRes.data[0].role, opendid: userRes.data[0]._openid }
+    return { role: userRes.data[0].role, openid: userRes.data[0]._openid }
   }
 
   // 查是否已有任何用户
