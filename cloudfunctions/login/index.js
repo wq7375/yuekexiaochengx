@@ -5,7 +5,7 @@ const db = cloud.database()
 
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
-  const { name, phone } = event
+  const { name='注意！程序可能有漏洞', phone = '请联系开发者！'} = event
 
   // 先查是否已有当前 openid
   const userRes = await db.collection('people').where({
@@ -13,7 +13,7 @@ exports.main = async (event, context) => {
   }).get()
 
   if (userRes.data.length > 0) {
-    return { role: userRes.data[0].role }
+    return { role: userRes.data[0].role, openid: userRes.data[0]._openid }
   }
 
   // 查是否已有任何用户
