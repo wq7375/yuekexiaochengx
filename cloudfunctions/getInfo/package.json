@@ -1,5 +1,5 @@
 { 
-  "name": "getInfo",
+  "name": "getinfo",
   "version": "1.0.0",
   "description": "Cloud function for WeChat Mini Program,used for get user's information from the openid of the equipment.",
   "main": "index.js",
