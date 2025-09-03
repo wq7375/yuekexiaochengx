@@ -1,0 +1,7 @@
+{ 
+  "name": "your-cloud-function",
+  "version": "1.0.0",
+  "description": "Cloud function for WeChat Mini Program",
+  "main": "index.js",
+  "dependencies": { "wx-server-sdk": "latest" }
+}
