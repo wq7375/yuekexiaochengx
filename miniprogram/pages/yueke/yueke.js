@@ -110,6 +110,7 @@ Page({
   initWeek() {
     const today = new Date();
     const offset = this.data.weekOffset || 0;
+    const todayDate = today.toLocaleDateString('sv-SE'); // Deepseek老师每天一个小技巧：瑞典表示时间的格式('sv-SE')正好是yyyy-mm-dd，所以可以用它来获取yyyy-mm-dd格式的本地时间
     const start = new Date(today.setDate(today.getDate() - today.getDay() + 1 + offset));
     const weekStart = start.toISOString().slice(0,10);
     const weekDates = getWeekDates(weekStart);
@@ -122,13 +123,13 @@ Page({
           const courses = res.data[0].courses || [];
           this.setData({
             courses,
-            selectedDate: weekDates[0]
+            selectedDate: todayDate
           });
           this.updateLessons();
         } else {
           this.setData({
             courses: [],
-            selectedDate: weekDates[0],
+            selectedDate: todayDate,
             lessons: []
           });
         }
@@ -136,7 +137,7 @@ Page({
       fail: () => {
         this.setData({
           courses: [],
-          selectedDate: weekDates[0],
+          selectedDate: todayDate,
           lessons: []
         });
       }
