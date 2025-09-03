@@ -17,7 +17,7 @@ exports.main = async (event, context) => {
   if (existRes.data.length > 0) {
     const user = existRes.data[0]
     // logging = logging+'user found:\nrole is: '+user.role+'\nid is: '+user._id+'\n';//日志，可删
-    return { role: user.role, id: user._id, LogInfo: logging }
+    return { role: user.role, LogInfo: logging }
   }
 
   // logging = logging+'no openid found, checking people lists...\n\n'; // 日志，可删
@@ -35,7 +35,7 @@ exports.main = async (event, context) => {
         cards: []
       }
     })
-    return { role: 'admin', id: addRes._id, LogInfo: logging }
+    return { role: 'admin', LogInfo: logging }
   }
 
   // 按姓名+电话匹配
@@ -54,7 +54,6 @@ exports.main = async (event, context) => {
     })
     return {
       role: matchRes.data[0].role,
-      id: matchRes.data[0]._id,
       LogInfo: logging
     }
   }
