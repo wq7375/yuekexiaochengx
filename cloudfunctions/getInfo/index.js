@@ -11,7 +11,7 @@ exports.main = async (event, context) => {
   var logging = 'none';
   // logging = 'Searching by openid: \n'+wxContext.OPENID+'\n';//日志，可删
   const existRes = await db.collection('people').where({
-    _openid: wxContext.OPENID
+    _openid: openid
   }).get()
 
   if (existRes.data.length > 0) {
