@@ -7,7 +7,7 @@
   <view class="banner-list">
     <block wx:for="{{banners}}" wx:key="index">
       <view class="banner-item">
-        <image src="{{item.url}}" class="banner-img"/>
+        <image src="{{item.image}}" class="banner-img"/>
         <button size="mini" class="del-btn" data-id="{{item._id}}" bindtap="onDeleteBanner">删除</button>
       </view>
     </block>
