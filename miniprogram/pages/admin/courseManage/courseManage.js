@@ -10,10 +10,13 @@ function canSetNextWeekSchedule() {
 }
 
 // 工具：获取某周一日期（weekOffset=0本周，7下周）
-function getWeekStart(weekOffset=0) {
+function getWeekStart(weekOffset = 0) {
   const today = new Date();
-  const monday = new Date(today.setDate(today.getDate() - today.getDay() + 1 + weekOffset));
-  return monday.toISOString().slice(0,10);
+  let day = today.getDay(); // 0=周日
+  if (day === 0) day = 7;   // 周日视为第7天
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - day + 1 + weekOffset);
+  return monday.toISOString().slice(0, 10);
 }
 
 Page({
@@ -69,8 +72,8 @@ Page({
           this.setData({ courses: res.data[0].courses });
         } else {
           let courses = [];
-          for (let i=0; i<7; i++) {
-            let date = new Date(new Date(weekStart).getTime() + i*86400000).toISOString().slice(0,10);
+          for (let i = 0; i < 7; i++) {
+            let date = new Date(new Date(weekStart).getTime() + i * 86400000).toISOString().slice(0, 10);
             courses.push({ date, type: 'group', lessons: [] });
             courses.push({ date, type: 'private', lessons: [] });
           }
@@ -142,7 +145,7 @@ Page({
     const minCount = editingLesson.minCount && !isNaN(Number(editingLesson.minCount)) ? Number(editingLesson.minCount) : 3;
     const maxCount = editingLesson.maxCount && !isNaN(Number(editingLesson.maxCount)) ? Number(editingLesson.maxCount) : 12;
 
-    let idx = courses.findIndex(c => c.date==selectedDate && c.type==selectedType);
+    let idx = courses.findIndex(c => c.date == selectedDate && c.type == selectedType);
     if (idx > -1) {
       courses[idx].lessons.push({
         startTime,
@@ -172,7 +175,7 @@ Page({
   onDeleteLesson(e) {
     const { date, type, index } = e.currentTarget.dataset;
     let courses = this.data.courses;
-    let idx = courses.findIndex(c=>c.date==date && c.type==type);
+    let idx = courses.findIndex(c => c.date == date && c.type == type);
     courses[idx].lessons.splice(index, 1);
     this.setData({ courses });
   },
@@ -197,11 +200,11 @@ Page({
   viewBookings(e) {
     const { date, type, index } = e.currentTarget.dataset;
     let courses = this.data.courses;
-    let idx = courses.findIndex(c=>c.date==date && c.type==type);
+    let idx = courses.findIndex(c => c.date == date && c.type == type);
     let lesson = courses[idx].lessons[index];
     wx.showModal({
       title: '预约名单',
-      content: lesson.students.map(s=>s.name).join(', ') || '暂无预约'
+      content: lesson.students.map(s => s.name).join(', ') || '暂无预约'
     });
   }
 });
