@@ -1,7 +1,7 @@
 { 
-  "name": "your-cloud-function",
+  "name": "getInfo",
   "version": "1.0.0",
-  "description": "Cloud function for WeChat Mini Program",
+  "description": "Cloud function for WeChat Mini Program,used for get user's information from the openid of the equipment.",
   "main": "index.js",
   "dependencies": { "wx-server-sdk": "latest" }
 }
