@@ -18,8 +18,8 @@ Page({
 
   onLogin() {
     const { name, phone } = this.data
-    console.log('name: '+name);
-    console.log('phone: '+phone);//以上两行是日志，可删
+    // console.log('name: '+name);
+    // console.log('phone: '+phone);//以上两行是日志，可删
     if (!name || !phone) {
       wx.showToast({ title: '请填写姓名和手机号', icon: 'none' })
       return
@@ -30,7 +30,7 @@ Page({
       data: { name, phone },
       success: res => {
         const { role, id } = res.result
-        console.log(res.result.LogInfo);//日志，可删
+        // console.log(res.result.LogInfo);//日志，可删
         if (role === 'admin') {
           wx.setStorageSync('userId', id)
           wx.redirectTo({ url: '/pages/adminHome/adminHome' })
