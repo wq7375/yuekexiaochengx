@@ -47,7 +47,11 @@ Page({
     return new Promise((resolve, reject) => {
       wx.cloud.callFunction({
         name: 'login', // 如果login返回openid，否则需补getOpenId
-        success: res => resolve(res.result.openid),
+        success: res => {
+          console.log('Successfully running cloud func login in pages/my/my.js,line 50.\nThe return is:'); //日志，可删
+          console.log(res.result); //日志，可删
+          resolve(res.result.openid)
+        },
         fail: () => reject('')
       });
     });
