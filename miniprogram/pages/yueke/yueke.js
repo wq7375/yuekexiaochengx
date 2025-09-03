@@ -68,54 +68,32 @@ Page({
   onShow() {
     this.getUserInfoAndInit();
   },
-  getUserInfoAndInit() {
-    wx.cloud.callFunction({
-      name: 'login',
-      success: res => {
-        const openid = res.result.openid;
-        if (!openid) {
-          wx.showToast({ title: '未获取到用户身份', icon: 'none' });
-          return;
-        }
-        db.collection('people').where({ _openid: openid, role: 'student' }).get({
-          success: res2 => {
-            if (res2.data.length) {
-              const user = res2.data[0];
-              const cards = user.cards || [];
-              this.setData({
-                userId: openid,
-                userName: user.name,
-                userCards: cards,
-                cardLabelIndex: 0,
-                cardLabel: cards.length > 0 ? cards[0].label : ''
-              });
-            } else {
-              this.setData({
-                userId: openid,
-                userName: '未知',
-                userCards: [],
-                cardLabelIndex: 0,
-                cardLabel: ''
-              });
-            }
-            this.initWeek();
-          },
-          fail: () => {
-            this.setData({
-              userId: openid,
-              userName: '未知',
-              userCards: [],
-              cardLabelIndex: 0,
-              cardLabel: ''
-            });
-            this.initWeek();
-          }
+  async getUserInfoAndInit() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'getInfo'
+      });
+      
+      if (res.result) {
+        const user = res.result;
+        const cards = user.cards || [];
+        
+        this.setData({
+          userId: user._openid,
+          userName: user.name || '未知',
+          userCards: cards,
+          cardLabelIndex: 0,
+          cardLabel: cards.length > 0 ? cards[0].label : ''
         });
-      },
-      fail: () => {
-        wx.showToast({ title: '未获取到用户身份', icon: 'none' });
+        
+        this.initWeek();
+      } else {
+        wx.showToast({ title: '未获取到用户信息', icon: 'none' });
       }
-    });
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+      wx.showToast({ title: '未获取到用户身份', icon: 'none' });
+    }
   },
 
   // 卡片选择器
