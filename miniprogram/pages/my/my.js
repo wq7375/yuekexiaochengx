@@ -17,27 +17,31 @@ Page({
   },
 
   async initStudentInfo() {
-    const studentId = wx.getStorageSync('userId')
-    if (!studentId) {
-      wx.showToast({ title: '未登录', icon: 'none' })
-      return
-    }
-
-    // 查 people 表
-    db.collection('people').doc(studentId).get({
-      success: res => {
-        const person = res.data
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'getInfo'
+      });
+      
+      if (res.result) {
+        const user = res.result;
         this.setData({
-          userName: person.name || '',
-          userPhone: person.phone || '',
-          avatarUrl: person.avatarUrl || '',
-          cards: person.cards || [],
-          studentId: person._id,
-          showUploadAvatar: !person.avatarUrl
-        })
-        this.loadHistory(person._openid)
+          userName: user.name || '',
+          userPhone: user.phone || '',
+          avatarUrl: user.avatarUrl || '',
+          cards: user.cards || [],
+          studentId: user._id,
+          openid: user._openid,
+          showUploadAvatar: !user.avatarUrl
+        });
+        
+        this.loadHistory(user._openid);
+      } else {
+        wx.showToast({ title: '未获取到用户信息', icon: 'none' });
       }
-    })
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+      wx.showToast({ title: '获取用户信息失败', icon: 'none' });
+    }
   },
 
   // 上传头像
