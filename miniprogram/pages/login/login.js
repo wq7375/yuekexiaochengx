@@ -30,6 +30,7 @@ Page({
       data: { name, phone },
       success: res => {
         const { role, id } = res.result
+        console.log(id);//日志，可删
         if (role === 'admin') {
           wx.setStorageSync('userId', id)
           wx.redirectTo({ url: '/pages/adminHome/adminHome' })
