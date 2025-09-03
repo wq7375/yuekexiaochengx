@@ -8,10 +8,10 @@
         <view class="row-mobile">手机: {{item.mobile}}</view>
         <view class="row-date">预约时间: {{item.date}}</view>
         <view class="row-remark">备注: {{item.remark || '无'}}</view>
-        <view class="row-time">提交时间: {{item.submitTime | formatTime}}</view>
+        <view class="row-time">提交时间: {{item.formattedTime}}</view>
       </view>
       <button size="mini" type="warn" bindtap="onDelete" data-id="{{item._id}}">删除</button>
     </view>
-    <view wx:if="{{trialList.length==0}}" class="empty-tip">暂无报名信息</view>
+    <view wx:if="{{trialList.length == 0}}" class="empty-tip">暂无报名信息</view>
   </view>
 </view>

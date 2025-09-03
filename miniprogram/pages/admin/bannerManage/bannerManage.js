@@ -17,27 +17,26 @@ Page({
   onAddBanner() {
     wx.chooseImage({
       count: 1,
-      success: res => {
-        const filePath = res.tempFilePaths[0];
-        const cloudPath = "banners/" + Date.now() + "_" + Math.floor(Math.random()*1000) + ".jpg";
+      success: chooseRes => {
+        const filePath = chooseRes.tempFilePaths[0];
+        const cloudPath = 'banners/' + Date.now() + '-' + Math.floor(Math.random() * 1000) + '.jpg';
+    
         wx.cloud.uploadFile({
           cloudPath,
           filePath,
           success: uploadRes => {
+            const fileID = uploadRes.fileID;
+            // 将 fileID 存入数据库，例如 banners 表
             db.collection('banners').add({
               data: {
-                url: uploadRes.fileID,
-                createTime: new Date()
-              },
-              success: () => {
-                wx.showToast({ title: '上传成功' });
-                this.getBanners();
+                image: fileID,
+                createdAt: new Date()
               }
             });
           }
         });
       }
-    });
+    });    
   },
   onDeleteBanner(e) {
     const id = e.currentTarget.dataset.id;

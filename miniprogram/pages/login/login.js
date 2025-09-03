@@ -3,6 +3,7 @@ Page({
     name: '',
     phone: ''
   },
+
   onNameInput(e) {
     this.setData({ name: e.detail.value })
   },
@@ -14,6 +15,7 @@ Page({
       url: '/pages/youke/youke'
     });
   },
+
   onLogin() {
     const { name, phone } = this.data
     if (!name || !phone) {
@@ -25,10 +27,12 @@ Page({
       name: 'login',
       data: { name, phone },
       success: res => {
-        const role = res.result.role
+        const { role, id } = res.result
         if (role === 'admin') {
+          wx.setStorageSync('userId', id)
           wx.redirectTo({ url: '/pages/adminHome/adminHome' })
         } else if (role === 'student') {
+          wx.setStorageSync('userId', id)
           wx.switchTab({ url: '/pages/studentHome/studentHome' })
         } else {
           wx.showToast({ title: '未找到信息，请联系管理员', icon: 'none' })
@@ -40,6 +44,3 @@ Page({
     })
   }
 })
-
-
-
