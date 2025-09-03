@@ -3,6 +3,7 @@ Page({
     name: '',
     phone: ''
   },
+
   onNameInput(e) {
     this.setData({ name: e.detail.value })
   },
@@ -14,6 +15,7 @@ Page({
       url: '/pages/youke/youke'
     });
   },
+
   onLogin() {
     const { name, phone } = this.data
     console.log('name: '+name);
@@ -27,14 +29,12 @@ Page({
       name: 'login',
       data: { name, phone },
       success: res => {
-        console.log('Successfully running cloud func login in page/login/login.js, line 30.\n returing data is:');
-        console.log(res.result.role);
-        console.log('log infomattion is:');
-        console.log(res.result.LogInfo);// 以上四行console.log是日志，可删
-        const role = res.result.role
+        const { role, id } = res.result
         if (role === 'admin') {
+          wx.setStorageSync('userId', id)
           wx.redirectTo({ url: '/pages/adminHome/adminHome' })
         } else if (role === 'student') {
+          wx.setStorageSync('userId', id)
           wx.switchTab({ url: '/pages/studentHome/studentHome' })
         } else {
           wx.showToast({ title: '未找到信息，请联系管理员', icon: 'none' })

@@ -1,21 +1,113 @@
-.container { padding: 24rpx; }
-.type-bar { display: flex; margin-bottom: 18rpx; }
-.type-btn { flex: 1; margin-right: 18rpx; border-radius: 20rpx; background: #f7f7fa; color: #7c3aed; font-size: 30rpx; }
-.type-btn.active { background: linear-gradient(90deg,#753a88,#f2c2ff); color: #fff; }
-.week-switch-bar { display: flex; margin-bottom: 12rpx; }
-.week-btn { flex: 1; margin-right: 18rpx; border-radius: 20rpx; background: #f7f7fa; color: #753a88; font-size: 28rpx; }
-.week-btn.active { background: #753a88; color: #fff; }
-.date-bar { margin-bottom: 18rpx; }
-.date-btn { margin-right: 12rpx; padding: 8rpx 22rpx; border-radius: 12rpx; border: 1px solid #eee; color: #753a88; background: #f7f7fa; }
-.date-btn.active { background: #753a88; color: #fff; border: none; }
-.lessons-title { font-size: 28rpx; font-weight: bold; margin-bottom: 18rpx; color: #753a88; }
-.lesson-list { }
-.lesson-card { background: #f8f6fd; border-radius: 16rpx; margin-bottom: 20rpx; padding: 24rpx; box-shadow: 0 2rpx 10rpx #eee; }
-.lesson-time { font-size: 28rpx; color: #333; margin-bottom: 8rpx; }
-.lesson-info { font-size: 26rpx; color: #666; margin-bottom: 5rpx; }
-.lesson-label { color: #753a88; font-weight: bold; margin-right: 8rpx; }
-.btn-bar { margin-top: 16rpx; display: flex; gap: 8rpx; }
-.book-btn { background: linear-gradient(90deg,#753a88,#f2c2ff); color: #fff; border-radius: 8rpx; }
-.book-btn.full { background: #eee; color: #bbb; }
-.cancel-btn { background: #fff3f3; color: #f56c6c; border-radius: 8rpx; }
-.empty-tip { color: #aaa; text-align: center; margin-top: 32rpx; font-size: 26rpx; }
+.container {
+  padding: 16rpx;
+  background: #f8f8f8;
+  min-height: 100vh;
+}
+
+/* 顶部按钮整行平分 */
+.type-bar, .week-switch-bar {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+.type-btn, .week-btn {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 12rpx;
+  background: #fff;
+  font-size: 28rpx;
+  color: #666;
+}
+.type-btn.active, .week-btn.active {
+  background: #1890ff;
+  color: #fff;
+}
+
+/* 卡片选择器 */
+.card-picker-row {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #fff;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+}
+.card-label {
+  color: #1890ff;
+  margin-left: 10rpx;
+}
+
+/* 日期滑动条 */
+.date-bar {
+  display: flex;
+  white-space: nowrap;
+  margin-bottom: 20rpx;
+}
+.date-btn {
+  width: 120rpx;
+  padding: 12rpx 0;
+  margin-right: 16rpx;
+  text-align: center;
+  background: #fff;
+  border-radius: 12rpx;
+  color: #666;
+}
+.date-btn:last-child {
+  margin-right: 0;
+}
+.date-btn.active {
+  background: #1890ff;
+  color: #fff;
+}
+.date-day {
+  font-size: 28rpx;
+  font-weight: bold;
+  line-height: 1.2;
+}
+.date-week {
+  font-size: 22rpx;
+  opacity: .9;
+}
+
+/* 课程卡片 */
+.lesson-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+}
+.lesson-time {
+  font-size: 28rpx;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+.lesson-info {
+  font-size: 26rpx;
+  margin-bottom: 6rpx;
+}
+.lesson-label {
+  color: #999;
+}
+.btn-bar {
+  margin-top: 12rpx;
+}
+.book-btn {
+  background: #1890ff;
+  color: #fff;
+  margin-right: 10rpx;
+}
+.book-btn.full {
+  background: #ccc;
+  color: #fff;
+}
+.cancel-btn {
+  background: #ff4d4f;
+  color: #fff;
+}
+.empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 40rpx 0;
+}
