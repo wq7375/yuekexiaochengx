@@ -16,7 +16,7 @@ exports.main = async (event, context) => {
 
   if (existRes.data.length > 0) {
     const user = existRes.data[0]
-    logging = logging+'user found:\nrole is: '+user.role+'\nid is: '+user.id+'\n';//日志，可删
+    logging = logging+'user found:\nrole is: '+user.role+'\nid is: '+user._id+'\n';//日志，可删
     return { role: user.role, id: user._id, LogInfo: logging }
   }
 
