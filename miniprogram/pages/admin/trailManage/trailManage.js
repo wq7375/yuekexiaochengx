@@ -39,8 +39,6 @@ Page({
   },
   onDelete(e) {
     const id = e.currentTarget.dataset.id;
-    console.log('删除ID:', id); // ✅ 检查是否拿到正确的 _id
-  
     if (!id) {
       wx.showToast({ title: 'ID无效', icon: 'none' });
       return;
@@ -51,19 +49,30 @@ Page({
       content: '确定要删除该报名信息吗？',
       success: res => {
         if (res.confirm) {
-          db.collection('trialLessons').doc(id).remove({
-            success: () => {
-              wx.showToast({ title: '已删除' });
-              this.getTrials();
+          wx.showLoading({ title: '删除中...' });
+          wx.cloud.callFunction({
+            name: 'deleteTrialLesson',
+            data: { id },
+            success: res => {
+              wx.hideLoading();
+              if (res.result.success) {
+                wx.showToast({ title: '已删除' });
+                this.getTrials();
+              } else {
+                wx.showToast({ title: '删除失败', icon: 'none' });
+                console.error('云函数错误:', res.result.error);
+              }
             },
             fail: err => {
-              wx.showToast({ title: '删除失败', icon: 'none' });
-              console.error('删除失败:', err);
+              wx.hideLoading();
+              wx.showToast({ title: '调用失败', icon: 'none' });
+              console.error('云函数调用失败:', err);
             }
           });
         }
       }
     });
   }
+  
 });
   
