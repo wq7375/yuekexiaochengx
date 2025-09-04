@@ -71,7 +71,7 @@ Page({
     selectedType: 'group',
     selectedDate: '',
     lessons: [],
-    userId: '',
+    userId: '', // 用户的id(不是openid)
     userName: '',
     weekOffset: 0, // 0:本周 7:下周
     userCards: [], // 当前用户所有卡
@@ -96,7 +96,7 @@ Page({
         const cards = user.cards || [];
         
         this.setData({
-          userId: user._openid,
+          userId: user._id,
           userName: user.name || '未知',
           userCards: cards,
           cardLabelIndex: 0,
@@ -124,52 +124,49 @@ Page({
   },
 
   // 初始化课表和日期，支持本周和下周
-initWeek() {
-  const now = new Date();
-  const offset = this.data.weekOffset || 0;
+  initWeek() {
+    const now = new Date();
+    const offset = this.data.weekOffset || 0;
 
-  // 计算本周一（周日 getDay=0，则回退到上周一）
-  const monday = new Date(now);
-  const day = monday.getDay(); // 0=周日, 1=周一, ...
-  const diffToMonday = (day === 0 ? -6 : 1 - day); // 距离周一的偏移
-  monday.setHours(0, 0, 0, 0);
-  monday.setDate(monday.getDate() + diffToMonday + offset);
+    // 计算本周一（周日 getDay=0，则回退到上周一）
+    const monday = new Date(now);
+    const day = monday.getDay(); // 0=周日, 1=周一, ...
+    const diffToMonday = (day === 0 ? -6 : 1 - day); // 距离周一的偏移
+    monday.setHours(0, 0, 0, 0);
+    monday.setDate(monday.getDate() + diffToMonday + offset);
 
-  const weekStart = formatDateLocal(monday);
-  const weekDates = getWeekDates(weekStart);
+    const weekStart = formatDateLocal(monday);
+    const weekDates = getWeekDates(weekStart);
 
-  // 默认选中“周一”
-  this.setData({
-    weekStart,
-    weekDates,
-    selectedDate: weekDates[0].date
-  });
+    // 默认选中“周一”
+    this.setData({
+      weekStart,
+      weekDates,
+      selectedDate: weekDates[0].date
+    });
 
-  // 拉取当前周课表
-  db.collection('schedules').where({ weekStart }).get({
-    success: res => {
-      const courses = res.data.length ? (res.data[0].courses || []) : [];
-      this.setData({ courses });
-      this.updateLessons();
-    },
-    fail: () => {
-      this.setData({ courses: [], lessons: [] });
-    }
-  });
-},
-
-  
+    // 拉取当前周课表
+    db.collection('schedules').where({ weekStart }).get({
+      success: res => {
+        const courses = res.data.length ? (res.data[0].courses || []) : [];
+        this.setData({ courses });
+        this.updateLessons();
+      },
+      fail: () => {
+        this.setData({ courses: [], lessons: [] });
+      }
+    });
+  },
 
   // 切换团课/私教
-  // 切换团课/私教
-switchType(e) {
-  const selectedType = e.currentTarget.dataset.type;
-  this.setData({
-    selectedType,
-    selectedDate: (this.data.weekDates[0] && this.data.weekDates[0].date) || this.data.selectedDate
-  });
-  this.updateLessons();
-},
+  switchType(e) {
+    const selectedType = e.currentTarget.dataset.type;
+    this.setData({
+      selectedType,
+      selectedDate: (this.data.weekDates[0] && this.data.weekDates[0].date) || this.data.selectedDate
+    });
+    this.updateLessons();
+  },
 
   // 切换日期
   selectDate(e) {
@@ -185,9 +182,9 @@ switchType(e) {
   },
   showNextWeek() {
     const now = new Date();
-    // 只有周天10点后可看下周课表
+    // 只有周日上午10点后可看下周课表
     if (now.getDay() !== 0 || now.getHours() < 10) {
-      wx.showToast({ title: '周天10点后可查看下周课表', icon: 'none' });
+      wx.showToast({ title: '周日上午10点后可查看下周课表', icon: 'none' });
       return;
     }
     this.setData({ weekOffset: 7 });
@@ -212,74 +209,74 @@ switchType(e) {
     this.setData({ lessons });
   },
 
- // 预约课程
- bookLesson(e) {
-  const idx = e.currentTarget.dataset.index;
-  const lesson = this.data.lessons[idx];
-  const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
+  // 预约课程
+  bookLesson(e) {
+    const idx = e.currentTarget.dataset.index;
+    // const lesson = this.data.lessons[idx];//变量lesson未使用，先注释掉
+    const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
 
-  wx.cloud.callFunction({
-    name: 'reserveClass',
-    data: {
-      action: 'reserve',
-      studentId: userId,
-      cardLabel,
-      weekStart,
-      type: selectedType,
-      date: selectedDate,
-      lessonIndex: idx
-    }
-  }).then(res => {
-    if (res.result.success) {
-      // 更新 schedules
-      wx.cloud.callFunction({
-        name: 'updateSchedule',
-        data: {
-          weekStart,
-          type: selectedType,
-          date: selectedDate,
-          lessonIndex: idx,
-          action: 'reserve',
-          student: { studentId: userId, name: this.data.userName, cardLabel }
-        }
-      }).then(() => this.initWeek());
-    } else {
-      wx.showToast({ title: res.result.msg || '预约失败', icon: 'none' });
-    }
-  });
-},
+    wx.cloud.callFunction({
+      name: 'reserveClass',
+      data: {
+        action: 'reserve',
+        studentId: userId,
+        cardLabel,
+        weekStart,
+        type: selectedType,
+        date: selectedDate,
+        lessonIndex: idx
+      }
+    }).then(res => {
+      if (res.result.success) {
+        // 更新 schedules
+        wx.cloud.callFunction({
+          name: 'updateSchedule',
+          data: {
+            weekStart,
+            type: selectedType,
+            date: selectedDate,
+            lessonIndex: idx,
+            action: 'reserve',
+            student: { studentId: userId, name: this.data.userName, cardLabel }
+          }
+        }).then(() => this.initWeek());
+      } else {
+        wx.showToast({ title: res.result.msg || '预约失败', icon: 'none' });
+      }
+    });
+  },
 
-cancelLesson(e) {
-  const idx = e.currentTarget.dataset.index;
-  const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
+  cancelLesson(e) {
+    const idx = e.currentTarget.dataset.index;
+    const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
 
-  wx.cloud.callFunction({
-    name: 'reserveClass',
-    data: {
-      action: 'cancel',
-      studentId: userId,
-      cardLabel,
-      weekStart,
-      type: selectedType,
-      date: selectedDate,
-      lessonIndex: idx
-    }
-  }).then(res => {
-    if (res.result.success) {
-      wx.cloud.callFunction({
-        name: 'updateSchedule',
-        data: {
-          weekStart,
-          type: selectedType,
-          date: selectedDate,
-          lessonIndex: idx,
-          action: 'cancel',
-          student: { studentId: userId }
-        }
-      }).then(() => this.initWeek());
-    } else {
-      wx.showToast({ title: res.result.msg || '取消失败', icon: 'none' });
-    }
-  });
-}
+    wx.cloud.callFunction({
+      name: 'reserveClass',
+      data: {
+        action: 'cancel',
+        studentId: userId,
+        cardLabel,
+        weekStart,
+        type: selectedType,
+        date: selectedDate,
+        lessonIndex: idx
+      }
+    }).then(res => {
+      if (res.result.success) {
+        wx.cloud.callFunction({
+          name: 'updateSchedule',
+          data: {
+            weekStart,
+            type: selectedType,
+            date: selectedDate,
+            lessonIndex: idx,
+            action: 'cancel',
+            student: { studentId: userId }
+          }
+        }).then(() => this.initWeek());
+      } else {
+        wx.showToast({ title: res.result.msg || '取消失败', icon: 'none' });
+      }
+    });
+  }
 });
