@@ -213,60 +213,73 @@ switchType(e) {
   },
 
  // 预约课程
-bookLesson(e) {
-  const index = e.currentTarget.dataset.index;
-  const lesson = this.data.lessons[index];
-  if (!lesson.canBook) {
-    wx.showToast({ title: lesson.bookTimeTip || '不可预约', icon: 'none' });
-    return;
-  }
+ bookLesson(e) {
+  const idx = e.currentTarget.dataset.index;
+  const lesson = this.data.lessons[idx];
+  const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
+
   wx.cloud.callFunction({
     name: 'reserveClass',
     data: {
       action: 'reserve',
-      studentId: this.data.userId,
-      scheduleId: lesson.scheduleId,
-      cardLabel: this.data.cardLabel
+      studentId: userId,
+      cardLabel,
+      weekStart,
+      type: selectedType,
+      date: selectedDate,
+      lessonIndex: idx
     }
   }).then(res => {
     if (res.result.success) {
-      wx.showToast({ title: '预约成功' });
-      this.updateLessons();
+      // 更新 schedules
+      wx.cloud.callFunction({
+        name: 'updateSchedule',
+        data: {
+          weekStart,
+          type: selectedType,
+          date: selectedDate,
+          lessonIndex: idx,
+          action: 'reserve',
+          student: { studentId: userId, name: this.data.userName, cardLabel }
+        }
+      }).then(() => this.initWeek());
     } else {
       wx.showToast({ title: res.result.msg || '预约失败', icon: 'none' });
     }
-  }).catch(err => {
-    console.error(err);
-    wx.showToast({ title: '网络错误', icon: 'none' });
   });
 },
 
-// 取消预约
 cancelLesson(e) {
-  const index = e.currentTarget.dataset.index;
-  const lesson = this.data.lessons[index];
-  if (!lesson.hasBooked) {
-    wx.showToast({ title: '未预约', icon: 'none' });
-    return;
-  }
+  const idx = e.currentTarget.dataset.index;
+  const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
+
   wx.cloud.callFunction({
     name: 'reserveClass',
     data: {
       action: 'cancel',
-      studentId: this.data.userId,
-      scheduleId: lesson.scheduleId,
-      cardLabel: this.data.cardLabel
+      studentId: userId,
+      cardLabel,
+      weekStart,
+      type: selectedType,
+      date: selectedDate,
+      lessonIndex: idx
     }
   }).then(res => {
     if (res.result.success) {
-      wx.showToast({ title: '已取消预约' });
-      this.updateLessons();
+      wx.cloud.callFunction({
+        name: 'updateSchedule',
+        data: {
+          weekStart,
+          type: selectedType,
+          date: selectedDate,
+          lessonIndex: idx,
+          action: 'cancel',
+          student: { studentId: userId }
+        }
+      }).then(() => this.initWeek());
     } else {
       wx.showToast({ title: res.result.msg || '取消失败', icon: 'none' });
     }
-  }).catch(err => {
-    console.error(err);
-    wx.showToast({ title: '网络错误', icon: 'none' });
   });
 }
 });
