@@ -236,7 +236,7 @@ Page({
             type: selectedType,
             date: selectedDate,
             lessonIndex: idx,
-            action: 'reserve',
+            action: 'book',
             student: { studentId: userId, name: this.data.userName, cardLabel }
           }
         }).then(() => this.initWeek());
