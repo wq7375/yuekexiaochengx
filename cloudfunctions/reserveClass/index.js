@@ -68,7 +68,7 @@ exports.main = async (event) => {
 
       if (exist.total > 0) {
         console.warn('重复预约:', studentId, courseDate, lessonIndex);
-        return { success: false, msg: '已预约该课程', LogInfo: logging };
+        return { success: false, msg: '已预约过该课程', LogInfo: logging };
       }
 
       // 次卡校验剩余次数

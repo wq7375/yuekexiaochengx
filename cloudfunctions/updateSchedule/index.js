@@ -7,7 +7,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
  * - type: 'group' | 'private'
  * - date: string
  * - lessonIndex: number
- * - action: 'book' | 'cancel' | 'forceCancel'
+ * - action: 'book' | 'forceBook' | 'cancel' | 'forceCancel'
  * - student: { studentId, name }
  */
 exports.main = async (event, context) => {
@@ -29,22 +29,25 @@ exports.main = async (event, context) => {
 
   // 操作逻辑
   // 预约时写入学生信息
-if (action === 'book') {
-  if (lesson.bookedCount >= lesson.maxCount)
-      return { success: false, msg: '已约满' }
-  if (lesson.students && lesson.students.find(s => s.studentId === student.studentId))
-      return { success: false, msg: '已预约' }
-  lesson.bookedCount += 1
-  lesson.students = lesson.students || []
-    lesson.students.push(student)
-  } else if (action === 'cancel' || action === 'forceCancel') {
-    const idx = lesson.students ? lesson.students.findIndex(s => s.studentId === student.studentId) : -1
-    if (idx === -1)
-      return { success: false, msg: '未预约' }
-    lesson.students.splice(idx, 1)
-    lesson.bookedCount -= 1
-    if (lesson.bookedCount < 0) lesson.bookedCount = 0
-  }
+  if (action === 'book' || action === 'forceBook') {
+    if (lesson.bookedCount >= lesson.maxCount)
+        return { success: false, msg: '已约满' }
+    if (lesson.students && lesson.students.find(s => s.studentId === student.studentId))
+        return { success: false, msg: '已预约' }
+    lesson.bookedCount += 1
+    lesson.students = lesson.students || []
+      lesson.students.push(student)
+    } else if (action === 'cancel' || action === 'forceCancel') {
+      const idx = lesson.students ? lesson.students.findIndex(s => s.studentId === student.studentId) : -1
+      if (idx === -1)
+        return { success: false, msg: '未预约' }
+      lesson.students.splice(idx, 1)
+      lesson.bookedCount -= 1
+      if (lesson.bookedCount < 0) lesson.bookedCount = 0
+    } else {
+      // 处理无效的action值
+      return { success: false, msg: '无效的操作类型' }
+    }
 
   // 更新
   courses[courseIdx].lessons = lessons
