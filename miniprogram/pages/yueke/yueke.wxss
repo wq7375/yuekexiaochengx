@@ -39,27 +39,38 @@
 }
 
 /* 日期滑动条 */
+.date-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 200rpx; /* 原来可能是 100rpx 左右，这里加长 */
+  padding:0;
+  margin-right: 16rpx;
+  border-radius: 12rpx;
+  background: #f5f6f7;
+  color: #333;
+  font-size: 24rpx;
+  white-space: nowrap; /* 防止换行 */
+}
+
+.date-btn.active {
+  background: #1677ff;
+  color: #fff;
+}
+
+.date-label {
+  font-weight: 500;
+}
+
 .date-bar {
-  display: flex;
+  display: inline-flex;
   white-space: nowrap;
   margin-bottom: 20rpx;
 }
-.date-btn {
-  width: 120rpx;
-  padding: 12rpx 0;
-  margin-right: 16rpx;
-  text-align: center;
-  background: #fff;
-  border-radius: 12rpx;
-  color: #666;
-}
-.date-btn:last-child {
-  margin-right: 0;
-}
-.date-btn.active {
-  background: #1890ff;
-  color: #fff;
-}
+
+  
+
+
 .date-day {
   font-size: 28rpx;
   font-weight: bold;

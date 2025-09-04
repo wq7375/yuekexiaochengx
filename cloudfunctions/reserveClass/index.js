@@ -1,61 +1,120 @@
-const cloud = require('wx-server-sdk')
-cloud.init()
-const db = cloud.database()
+const cloud = require('wx-server-sdk');
+cloud.init();
+const db = cloud.database();
+const _ = db.command;
 
-exports.main = async (event, context) => {
-  const { studentId, scheduleId, action, cardLabel, isForce } = event
-  // ⚠️ cardLabel 必须为前端 picker 选择到的卡片 label（如“私教卡”、“团课月卡”）
+exports.main = async (event) => {
+  const {
+    action, studentId, cardLabel,
+    weekStart, type: courseType, date: courseDate, lessonIndex,
+    isForce, force
+  } = event;
 
-  // 1. 获取用户（people）信息
-  const userRes = await db.collection('people').doc(studentId).get()
-  const user = userRes.data
-  if (!user) return { success: false, msg: '用户不存在' }
+  const forced = !!(isForce ?? force);
 
-  // 2. 找该学生的目标卡
-  const card = (user.cards || []).find(c => c.label === cardLabel)
-  if (!card) return { success: false, msg: '未找到对应卡片' }
+  try {
+    console.log('收到参数:', event);
 
-  // 3. 检查卡的次数和有效期（isForce 为 true 时跳过）
-  if (action === "reserve") {
-    if (!isForce) {
-      // 次卡/私教卡类型，需判断次数
-      if ((card.type === "private" || card.type === "count") && (card.remainCount === undefined || card.remainCount <= 0)) {
-        return { success: false, msg: '卡次数不足' }
-      }
-      if (card.expireDate && new Date(card.expireDate) < new Date()) {
-        return { success: false, msg: '卡已过期' }
-      }
+    // 校验 studentId 是否存在
+    if (!studentId) {
+      console.error('studentId 未传入');
+      return { success: false, msg: '学生ID缺失' };
     }
 
-    // 4. 扣次数并写入booking
-    // 注意：需原子更新 cards 数组
-    if (card.type === "private" || card.type === "count") {
-      const cardIdx = user.cards.findIndex(c => c.label === cardLabel)
-      if (cardIdx === -1) return { success: false, msg: '未找到卡' }
-      await db.collection('people').doc(studentId).update({
-        [`cards.${cardIdx}.remainCount`]: db.command.inc(-1)
-      })
+    // 用 openid 查询 people 表
+    const stuRes = await db.collection('people').where({ openid: studentId }).get();
+    if (!stuRes || !stuRes.data || stuRes.data.length === 0) {
+      console.error('未找到学生信息:', studentId);
+      return { success: false, msg: '未找到该学生' };
     }
-    await db.collection('booking').add({
-      data: {
-        studentId,
-        scheduleId,
-        cardLabel,
-        createTime: db.serverDate(),
-        status: 1 // 已预约
+
+    const student = stuRes.data[0];
+
+    // 获取卡片信息
+    const cards = Array.isArray(student.cards) ? student.cards : [];
+    const cardIdx = cards.findIndex(c => c && c.label === cardLabel);
+    if (cardIdx < 0) {
+      console.error('未找到卡片:', cardLabel);
+      return { success: false, msg: '未找到该卡信息' };
+    }
+
+    const card = cards[cardIdx];
+    const isCountCard = ['count', 'private'].includes(card.type);
+
+    // 校验卡片是否过期
+    if (card.expireDate && new Date(card.expireDate) < new Date()) {
+      console.warn('卡片已过期:', card.expireDate);
+      return { success: false, msg: '该卡已过期' };
+    }
+
+    if (action === 'reserve') {
+      // 检查是否已预约
+      const exist = await db.collection('booking').where({
+        studentId, weekStart, courseType, courseDate, lessonIndex, cardLabel, status: 1
+      }).count();
+
+      if (exist.total > 0) {
+        console.warn('重复预约:', studentId, courseDate, lessonIndex);
+        return { success: false, msg: '已预约该课程' };
       }
-    })
-    return { success: true }
-  } else if (action === "cancel") {
-    // 取消预约返还次数
-    if (card.type === "private" || card.type === "count") {
-      const cardIdx = user.cards.findIndex(c => c.label === cardLabel)
-      if (cardIdx === -1) return { success: false, msg: '未找到卡' }
-      await db.collection('people').doc(studentId).update({
-        [`cards.${cardIdx}.remainCount`]: db.command.inc(1)
-      })
+
+      // 次卡校验剩余次数
+      if (isCountCard && !forced && (!card.remainCount || card.remainCount <= 0)) {
+        console.warn('剩余次数不足:', card.remainCount);
+        return { success: false, msg: '剩余次数不足' };
+      }
+
+      // 写入预约记录
+      await db.collection('booking').add({
+        data: {
+          studentId,
+          name: student.name || '',
+          cardLabel,
+          weekStart,
+          courseType,
+          courseDate,
+          lessonIndex,
+          createTime: db.serverDate(),
+          status: 1
+        }
+      });
+
+      // 次卡扣次
+      if (isCountCard && !forced) {
+        await db.collection('people').where({ openid: studentId }).update({
+          data: {
+            [`cards.${cardIdx}.remainCount`]: _.inc(-1)
+          }
+        });
+      }
+
+      console.log('预约成功:', studentId, courseDate, lessonIndex);
+      return { success: true };
     }
-    await db.collection('booking').where({ studentId, scheduleId, cardLabel }).remove()
-    return { success: true }
+
+    if (action === 'cancel') {
+      // 删除预约记录
+      await db.collection('booking').where({
+        studentId, weekStart, courseType, courseDate, lessonIndex, cardLabel, status: 1
+      }).remove();
+
+      // 次卡退回次数
+      if (isCountCard && !forced) {
+        await db.collection('people').where({ openid: studentId }).update({
+          data: {
+            [`cards.${cardIdx}.remainCount`]: _.inc(1)
+          }
+        });
+      }
+
+      console.log('取消成功:', studentId, courseDate, lessonIndex);
+      return { success: true };
+    }
+
+    console.warn('未知操作类型:', action);
+    return { success: false, msg: '未知操作类型' };
+  } catch (err) {
+    console.error('云函数异常:', err);
+    return { success: false, msg: '服务器错误' };
   }
-}
+};

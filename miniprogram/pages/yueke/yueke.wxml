@@ -7,8 +7,8 @@
 
   <!-- 本周/下周：整行平分 -->
   <view class="week-switch-bar">
-    <view class="week-btn {{weekOffset==0?'active':''}}" data-offset="0" bindtap="switchWeek">本周课表</view>
-    <view class="week-btn {{weekOffset==7?'active':''}}" data-offset="7" bindtap="switchWeek">下周课表</view>
+    <view class="week-btn {{weekOffset==0?'active':''}}" data-offset="0" bindtap="showThisWeek">本周课表</view>
+    <view class="week-btn {{weekOffset==7?'active':''}}" data-offset="7" bindtap="showNextWeek">下周课表</view>
   </view>
 
   <!-- 卡片选择器 -->
@@ -20,15 +20,27 @@
   </picker>
 
   <!-- 日期滑动：从周一开始 -->
-  <scroll-view scroll-x class="date-bar" enable-flex>
-    <block wx:for="{{weekDates}}" wx:key="date">
-      <view class="date-btn {{selectedDate==item.date?'active':''}}" data-date="{{item.date}}" bindtap="selectDate">
-        <text class="date-day">{{item.day}}</text>
-        <text class="date-week">{{item.week}}</text>
-      </view>
-    </block>
-  </scroll-view>
+<scroll-view
+  scroll-x
+  class="date-bar"
+  enable-flex
+  scroll-with-animation
+  scroll-into-view="{{'d_' + selectedDate}}"
+>
+  <block wx:for="{{weekDates}}" wx:key="date">
+    <view
+      id="d_{{item.date}}"
+      class="date-btn {{selectedDate==item.date?'active':''}}"
+      data-date="{{item.date}}"
+      bindtap="selectDate"
+    >
+    <text class="date-label">{{item.day}} {{item.week}}</text>
 
+    </view>
+  </block>
+</scroll-view>
+
+ 
   <!-- 课程列表 -->
   <view class="lesson-list">
     <block wx:for="{{lessons}}" wx:key="key">
@@ -38,8 +50,18 @@
         <view class="lesson-info"><text class="lesson-label">内容：</text>{{item.content || '-'}}</view>
         <view class="lesson-info"><text class="lesson-label">人数：</text>{{item.bookedCount}}/{{item.maxCount}}</view>
         <view class="btn-bar">
-          <button class="book-btn" size="mini" data-index="{{index}}" bindtap="bookLesson" wx:if="{{item.canBook}}">预约</button>
-          <button class="cancel-btn" size="mini" data-index="{{index}}" bindtap="cancelLesson" wx:if="{{item.hasBooked}}">取消预约</button>
+         <!-- 预约按钮 -->
+<button class="book-btn" size="mini"
+        data-index="{{index}}"
+        bindtap="bookLesson"
+        wx:if="{{item.canBook}}">预约</button>
+
+<!-- 取消预约按钮 -->
+<button class="cancel-btn" size="mini"
+        data-index="{{index}}"
+        bindtap="cancelLesson"
+        wx:if="{{item.hasBooked}}">取消预约</button>
+
           <button class="book-btn full" size="mini" disabled wx:if="{{!item.canBook && !item.hasBooked}}">
             {{item.bookTimeTip || '已约满'}}
           </button>
