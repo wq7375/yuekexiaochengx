@@ -71,7 +71,7 @@ Page({
     selectedType: 'group',
     selectedDate: '',
     lessons: [],
-    userId: '',
+    userId: '', // 用户的id(不是openid)
     userName: '',
     weekOffset: 0, // 0:本周 7:下周
     userCards: [], // 当前用户所有卡
@@ -96,7 +96,7 @@ Page({
         const cards = user.cards || [];
         
         this.setData({
-          userId: user._openid,
+          userId: user._id,
           userName: user.name || '未知',
           userCards: cards,
           cardLabelIndex: 0,
@@ -214,6 +214,14 @@ Page({
     const idx = e.currentTarget.dataset.index;
     // const lesson = this.data.lessons[idx];//变量lesson未使用，先注释掉
     const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
+    console.log('Running method `bookLesson`\n');
+    console.log('idx is:')
+    console.log(idx);
+    console.log('weekStart is: '+weekStart);
+    console.log('selectedType is: '+selectedType);
+    console.log('selectedDate is: '+selectedDate);
+    console.log('cardLabel is: '+cardLabel);
+    console.log('userId is: \n'+userId);
 
     wx.cloud.callFunction({
       name: 'reserveClass',
