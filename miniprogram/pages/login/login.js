@@ -25,6 +25,8 @@ Page({
       return
     }
 
+    // wx.redirectTo({ url: '/pages/adminHome/adminHome' }); return //本地测试，用于直接跳转admin页面
+
     wx.cloud.callFunction({
       name: 'login',
       data: { name, phone },
