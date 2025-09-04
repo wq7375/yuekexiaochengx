@@ -212,7 +212,7 @@ Page({
   // 预约课程
   bookLesson(e) {
     const idx = e.currentTarget.dataset.index;
-    const lesson = this.data.lessons[idx];
+    // const lesson = this.data.lessons[idx];//变量lesson未使用，先注释掉
     const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
 
     wx.cloud.callFunction({
