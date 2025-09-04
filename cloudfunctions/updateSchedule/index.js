@@ -7,7 +7,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
  * - type: 'group' | 'private'
  * - date: string
  * - lessonIndex: number
- * - action: 'book' | 'forceCancel' | 'cancel' | 'forceCancel'
+ * - action: 'book' | 'forceBook' | 'cancel' | 'forceCancel'
  * - student: { studentId, name }
  */
 exports.main = async (event, context) => {
@@ -29,7 +29,7 @@ exports.main = async (event, context) => {
 
   // 操作逻辑
   // 预约时写入学生信息
-  if (action === 'book') {
+  if (action === 'book' || action === 'forceBook') {
     if (lesson.bookedCount >= lesson.maxCount)
         return { success: false, msg: '已约满' }
     if (lesson.students && lesson.students.find(s => s.studentId === student.studentId))
@@ -44,6 +44,9 @@ exports.main = async (event, context) => {
       lesson.students.splice(idx, 1)
       lesson.bookedCount -= 1
       if (lesson.bookedCount < 0) lesson.bookedCount = 0
+    } else {
+      // 处理无效的action值
+      return { success: false, msg: '无效的操作类型' }
     }
 
   // 更新
