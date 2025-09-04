@@ -214,14 +214,6 @@ Page({
     const idx = e.currentTarget.dataset.index;
     // const lesson = this.data.lessons[idx];//变量lesson未使用，先注释掉
     const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
-    console.log('Running method `bookLesson`\n');
-    console.log('idx is:')
-    console.log(idx);
-    console.log('weekStart is: '+weekStart);
-    console.log('selectedType is: '+selectedType);
-    console.log('selectedDate is: '+selectedDate);
-    console.log('cardLabel is: '+cardLabel);
-    console.log('userId is: \n'+userId);
 
     wx.cloud.callFunction({
       name: 'reserveClass',
@@ -235,7 +227,6 @@ Page({
         lessonIndex: idx
       }
     }).then(res => {
-      console.log(res.result.LogInfo);
       if (res.result.success) {
         // 更新 schedules
         wx.cloud.callFunction({

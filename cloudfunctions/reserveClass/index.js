@@ -21,29 +21,29 @@ exports.main = async (event) => {
 
   try {
     console.log('收到参数:', event);
-    logging ='Running cloud function reserveClass, value of parameters is\n'+String(event)+'\n';
+    // logging ='Running cloud function reserveClass, value of parameters is\n'+String(event)+'\n';
 
     // 校验 studentId 是否存在
     if (!studentId) {
-      logging += '\nERROR: student id does not exist!\n';
+      // logging += '\nERROR: student id does not exist!\n';
       console.error('studentId 未传入');
       return { success: false, msg: '学生ID缺失', LogInfo: logging };
     }
 
     // 用 id 查询 people 表
-    logging += '\nFind student using id:'+studentId+'\n';
+    // logging += '\nFind student using id:'+studentId+'\n';
     const stuRes = await db.collection('people').where({ _id: studentId }).get();
     if (!stuRes || !stuRes.data || stuRes.data.length === 0) {
-      logging += 'ERROR: Student not in the list!\n';
+      // logging += 'ERROR: Student not in the list!\n';
       console.error('未找到学生信息:', studentId);
       return { success: false, msg: '未找到该学生', LogInfo: logging };
     }
 
     const student = stuRes.data[0];
-    logging += 'student found,is \n'+String(stuRes.data[0])+'\n';
+    // logging += 'student found,is \n'+String(stuRes.data[0])+'\n';
 
     // 获取卡片信息
-    logging += '\ncan not load following log beacause coder is lazy...\n';
+    // logging += '\ncan not load following log beacause coder is lazy...\n';
     const cards = Array.isArray(student.cards) ? student.cards : [];
     const cardIdx = cards.findIndex(c => c && c.label === cardLabel);
     if (cardIdx < 0) {
