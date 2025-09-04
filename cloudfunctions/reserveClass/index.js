@@ -6,7 +6,7 @@ const _ = db.command;
 exports.main = async (event) => {
   const {
     action,
-    studentId,
+    studentId, // 是id不是openid
     cardLabel,
     weekStart,
     type: courseType,
@@ -30,7 +30,7 @@ exports.main = async (event) => {
       return { success: false, msg: '学生ID缺失', LogInfo: logging };
     }
 
-    // 用 openid 查询 people 表
+    // 用 id 查询 people 表
     logging += '\nFind student using id:'+studentId+'\n';
     const stuRes = await db.collection('people').where({ _id: studentId }).get();
     if (!stuRes || !stuRes.data || stuRes.data.length === 0) {
@@ -94,7 +94,7 @@ exports.main = async (event) => {
 
       // 次卡扣次
       if (isCountCard && !forced) {
-        await db.collection('people').where({ _openid: studentId }).update({
+        await db.collection('people').where({ _id: studentId }).update({
           data: {
             [`cards.${cardIdx}.remainCount`]: _.inc(-1)
           }
@@ -113,7 +113,7 @@ exports.main = async (event) => {
 
       // 次卡退回次数
       if (isCountCard && !forced) {
-        await db.collection('people').where({ _openid: studentId }).update({
+        await db.collection('people').where({ _id: studentId }).update({
           data: {
             [`cards.${cardIdx}.remainCount`]: _.inc(1)
           }

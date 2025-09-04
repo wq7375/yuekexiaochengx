@@ -235,6 +235,7 @@ Page({
         lessonIndex: idx
       }
     }).then(res => {
+      console.log(res.result.LogInfo);
       if (res.result.success) {
         // 更新 schedules
         wx.cloud.callFunction({
