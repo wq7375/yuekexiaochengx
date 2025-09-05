@@ -229,26 +229,34 @@ Page({
     });
   },
 
-  loadStudentList() {
+  loadStudentList(cb) {
     db.collection('people').where({ role: 'student' }).get({
       success: res => {
-        const list = res.data || [];
-        this.setData({ studentList: list, selectedStudentIdx: 0 });
-        const cardList = list.length > 0 ? (list[0].cards || []) : [];
-        this.setData({ cardList, selectedCardIdx: 0 });
-      }
-    });
+        const list = res.data || []
+        this.setData({
+          studentList: list,
+          selectedStudentIdx: 0,
+          cardList: list.length > 0 ? (list[0].cards || []) : [],
+          selectedCardIdx: 0
+        }, cb)
+      },
+      fail: () => cb && cb()
+    })
   },
+  
 
   onForceBookStudentChange(e) {
-    const idx = Number(e.detail.value);
-    const cardList = (this.data.studentList[idx] && this.data.studentList[idx].cards) || [];
+    const idx = Number(e.detail.value)
+    const list = this.data.studentList || []
+    const safeIdx = Math.max(0, Math.min(idx, list.length - 1))
+    const cardList = list[safeIdx] ? (list[safeIdx].cards || []) : []
     this.setData({
-      selectedStudentIdx: idx,
+      selectedStudentIdx: safeIdx,
       cardList,
       selectedCardIdx: 0
-    });
-  },
+    })
+  }
+,
 
   onForceBookCardChange(e) {
     this.setData({ selectedCardIdx: Number(e.detail.value) });
