@@ -1,9 +1,13 @@
 // 云函数：manageSchedule
 const cloud = require('wx-server-sdk')
-cloud.init()
+cloud.init({
+  env: cloud.DYNAMIC_CURRENT_ENV // 使用当前环境
+})
+
 const db = cloud.database()
 const _ = db.command
 
+// [保持原有的辅助函数不变]
 // 辅助函数（与前端相同的日期处理逻辑）
 function pad(n) { return String(n).padStart(2, '0') }
 function formatDateLocal(d) {
@@ -38,13 +42,22 @@ exports.main = async (event, context) => {
   const { operation, data } = event
   
   try {
-    // 首先检查用户权限
-    const { result: permission } = await cloud.callFunction({
-      name: 'checkAdminPermission',
-      data: {}
-    })
+    console.log('执行操作:', operation, 'OpenID:', wxContext.OPENID);
     
-    if (!permission.isAdmin) {
+    // 直接查询people集合检查权限，避免云函数调用云函数
+    const userRes = await db.collection('people')
+      .where({
+        _openid: wxContext.OPENID
+      })
+      .get()
+    
+    if (userRes.data.length === 0) {
+      return { success: false, message: '用户未注册' }
+    }
+    
+    const userInfo = userRes.data[0]
+    // 根据role字段判断是否为管理员
+    if (userInfo.role !== 'admin') {
       return { success: false, message: '无管理员权限' }
     }
     
@@ -63,10 +76,11 @@ exports.main = async (event, context) => {
     }
   } catch (err) {
     console.error('课表管理操作失败:', err)
-    return { success: false, message: '操作失败' }
+    return { success: false, message: '操作失败: ' + err.message }
   }
 }
 
+// [保持原有的getSchedule、saveSchedule、deleteLesson、copyLastWeek函数不变]
 // 获取课表
 async function getSchedule(data) {
   const { weekOffset = 0 } = data

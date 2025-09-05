@@ -1,30 +1,43 @@
 // 云函数：checkAdminPermission
 const cloud = require('wx-server-sdk')
-cloud.init()
+cloud.init({
+  env: cloud.DYNAMIC_CURRENT_ENV
+})
 
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext()
-  const db = cloud.database()
-  
   try {
-    // 查询people集合中当前用户的信息
-    const userRes = await db.collection('people')
-      .where({
-        _openid: wxContext.OPENID
-      })
-      .get()
+    // 直接调用 login 云函数来检查权限
+    const result = await cloud.callFunction({
+      name: 'login',
+      data: {
+        // 传递空参数，避免创建新用户
+        name: '',
+        phone: ''
+      }
+    })
     
-    if (userRes.data.length === 0) {
-      return { isAdmin: false, message: '用户未注册' }
+    console.log('login 云函数返回结果:', result)
+    
+    // 根据 login 函数的返回结果判断是否是管理员
+    if (result.result && result.result.role === 'admin') {
+      return { 
+        isAdmin: true, 
+        message: '管理员权限验证成功',
+        role: result.result.role
+      }
+    } else {
+      return { 
+        isAdmin: false, 
+        message: result.result.message || '无管理员权限',
+        role: result.result.role || 'none'
+      }
     }
-    
-    const userInfo = userRes.data[0]
-    // 根据role字段判断是否为管理员
-    const isAdmin = userInfo.role === 'admin'
-    
-    return { isAdmin, userInfo }
   } catch (err) {
     console.error('权限检查失败:', err)
-    return { isAdmin: false, message: '权限检查失败' }
+    return { 
+      isAdmin: false, 
+      message: '权限检查失败: ' + err.message,
+      error: err.stack
+    }
   }
 }

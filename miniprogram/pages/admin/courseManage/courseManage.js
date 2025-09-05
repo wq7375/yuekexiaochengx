@@ -60,8 +60,11 @@ Page({
       endMinute: '00',
       teacher: '',
       content: '',
-      minCount: '3',
-      maxCount: '12'
+      minCount: ' ',
+      maxCount: ' ',
+      isLoading: true,
+    isAdmin: false,
+    errorMessage: ''
     },
     hours,
     minutes,
@@ -72,6 +75,52 @@ Page({
   onLoad() {
     this.checkEditPermission();
     this.initWeek();
+    this.checkAdminPermission();
+  },
+  // 检查管理员权限
+  checkAdminPermission() {
+    wx.showLoading({ title: '检查权限中' })
+    
+    wx.cloud.callFunction({
+      name: 'checkAdminPermission',
+      success: res => {
+        wx.hideLoading()
+        console.log('权限检查结果:', res)
+        
+        if (res.result && res.result.isAdmin) {
+          // 有权限，初始化页面
+          this.setData({ 
+            isAdmin: true,
+            canSetNextWeek: canSetNextWeekSchedule() 
+          }, () => {
+            this.initWeek()
+          })
+        } else {
+          // 无权限或其他错误
+          this.setData({ 
+            isLoading: false,
+            errorMessage: res.result.message || '您不是管理员，无法访问此页面'
+          })
+          wx.showModal({
+            title: '权限不足',
+            content: res.result.message || '您不是管理员，无法访问此页面',
+            showCancel: false,
+            success: () => {
+              wx.navigateBack()
+            }
+          })
+        }
+      },
+      fail: err => {
+        console.error('权限检查失败:', err)
+        wx.hideLoading()
+        this.setData({ 
+          isLoading: false,
+          errorMessage: '权限检查失败，请检查网络连接'
+        })
+        wx.showToast({ title: '权限检查失败', icon: 'none' })
+      }
+    })
   },
 
   // 检查是否可制定下周课表
