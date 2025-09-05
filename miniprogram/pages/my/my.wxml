@@ -32,7 +32,7 @@
   <!-- 历史上课记录 -->
   <view class="container">
     <view class="section-card">
-    <view class="section-title">历史上课记录</view> 
+    <view class="section-title">预约记录</view> 
     <view class="section">
     <text>选择截止日期：</text>
     <picker mode="date" bindchange="onDateChange">
@@ -40,12 +40,12 @@
     </picker>
   </view>
   <view class="section">
-    <button bindtap="loadHistory">查询历史记录</button>
+    <button bindtap="loadHistory">查询预约记录</button>
   </view>
   <view class="section">
     <block wx:for="{{historyList}}" wx:key="id">
       <view class="history-item">
-        <text>{{item.date}} - {{item.courseName}}（{{item.teacher}}）</text>
+        <text>{{item.date}} {{item.startTime}}-{{item.endTime}}: {{item.courseName}}（{{item.teacher}}）</text>
       </view>
     </block>
   </view>

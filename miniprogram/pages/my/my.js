@@ -102,34 +102,49 @@ Page({
       return
     }
   
-    wx.cloud.database().collection('booking')
-      .where({
-        studentId
-      })
-      .orderBy('courseDate', 'desc')
-      .get({
-        success: res => {
-          console.log('数据库返回：', res.data)
-          const filtered = res.data.filter(item => item.courseDate < cutoffDate)
-          this.setData({
-            historyList: filtered.map(item => ({
-              id: item._id,
-              date: item.courseDate,
-              courseName: item.courseName,
-              teacher: item.teacher
-            }))
-          })
-        },
-        fail: err => {
-          console.error('查询失败：', err)
+    wx.cloud.callFunction({
+      name: 'getBookingHistory',
+      data: {
+        studentId: studentId
+      },
+      success: res => {
+        if (res.result.error) {
+          console.error('云函数返回错误：', res.result.error)
           wx.showToast({
             title: '查询失败',
             icon: 'none'
           })
+          return
         }
-      })
+        
+        console.log('云函数返回：', res.result)
+        
+        // 过滤并格式化数据
+        const filtered = res.result
+          .filter(item => item.courseDate < cutoffDate)
+          .map(item => ({
+            id: item._id,
+            date: item.courseDate,
+            courseName: item.courseInfo.lesson.content,
+            startTime: item.courseInfo.lesson.startTime,
+            endTime: item.courseInfo.lesson.endTime,
+            teacher: item.courseInfo.lesson.teacher
+          }))
+        
+        this.setData({
+          historyList: filtered
+        })
+      },
+      fail: err => {
+        console.error('调用云函数失败：', err)
+        wx.showToast({
+          title: '查询失败',
+          icon: 'none'
+        })
+      }
+    })
   }
-});  
+});
   
 
 

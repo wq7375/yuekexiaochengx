@@ -1,0 +1,7 @@
+{
+  "name": "getbookinghistory",
+  "version": "1.0.0",
+  "description": "获取学生预约历史",
+  "main": "index.js",
+  "dependencies": { "wx-server-sdk": "latest" }
+}
