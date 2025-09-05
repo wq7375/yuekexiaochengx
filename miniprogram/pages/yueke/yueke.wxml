@@ -20,13 +20,13 @@
   </picker>
 
   <!-- 日期滑动：从周一开始 -->
-  <scroll-view
-    scroll-x
-    class="date-bar"
-    enable-flex
-    scroll-with-animation
-    scroll-into-view="{{'d_' + selectedDate}}"
-  >
+<scroll-view
+  scroll-x
+  class="date-bar"
+  enable-flex
+  scroll-with-animation
+  scroll-into-view="{{'d_' + selectedDate}}"
+>
   <block wx:for="{{weekDates}}" wx:key="date">
     <view
       id="d_{{item.date}}"
@@ -50,20 +50,17 @@
         <view class="lesson-info"><text class="lesson-label">内容：</text>{{item.content || '-'}}</view>
         <view class="lesson-info"><text class="lesson-label">人数：</text>{{item.bookedCount}}/{{item.maxCount}}</view>
         <view class="btn-bar">
-          <!-- 预约按钮 -->
+         <!-- 预约按钮 -->
           <button class="book-btn" size="mini"
             data-index="{{index}}"
             bindtap="bookLesson"
-            wx:if="{{item.canBook}}">预约
-          </button>
+            wx:if="{{item.canBook}}">预约</button>
 
-          <!-- 取消预约按钮 -->
-          <button class="cancel-btn" size="mini"
-            data-index="{{index}}"
-            bindtap="cancelLesson"
-            wx:if="{{item.hasBooked}}">取消预约
-          </button>
-
+<!-- 取消预约按钮 -->
+        <button class="cancel-btn" size="mini"
+          data-index="{{index}}"
+          bindtap="cancelLesson"
+          wx:if="{{item.hasBooked}}">取消预约</button>
           <button class="book-btn full" size="mini" disabled wx:if="{{!item.canBook && !item.hasBooked}}">
             {{item.bookTimeTip || '已约满'}}
           </button>

@@ -23,7 +23,7 @@
           <text class="lesson-label">人数：</text><text>{{item.bookedCount}}/{{item.maxCount}}</text>
         </view>
         <view class="lesson-info">
-          <text class="lesson-label">预约学生：</text>
+          <text class="lesson-label">学生：</text>
           <view class="student-list">
             <block wx:for="{{item.students}}" wx:key="studentId">
               <text class="student-name">{{item.name}}</text>
