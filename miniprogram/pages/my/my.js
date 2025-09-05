@@ -33,7 +33,7 @@ Page({
           studentId: user._id,
           openid: user._openid,
           showUploadAvatar: !user.avatarUrl,
-          cutoffDate: new Date().toLocaleDateString('sv-SE')
+          cutoffDate: new Date(Date.now() + 259200000).toLocaleDateString('sv-SE') //默认显示未来三天以及过去的课表
         });
         
         this.loadHistory();
@@ -117,7 +117,7 @@ Page({
           return
         }
         
-        console.log('云函数返回：', res.result)
+        // console.log('云函数返回：', res.result)
         
         // 过滤并格式化数据
         const filtered = res.result

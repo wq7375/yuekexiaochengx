@@ -27,7 +27,6 @@ function getWeekDates(weekStartStr) {
   return arr;
 }
 
-
 // 工具：判断某课程是否可预约（提前2天10点开放，开课前2小时截止）
 function isCanBook(courseDate, startTime) {
   const now = new Date();
@@ -42,6 +41,16 @@ function isCanBook(courseDate, startTime) {
   closeTime.setHours(closeTime.getHours() - 2);
 
   return now >= openTime && now < closeTime;
+}
+
+// 工具：判断某课程是否可以取消预约（标准为是否超出课程开始时间）
+function isCanCancel(courseDate, startTime){
+  // 创建给定时间的 Date 对象
+  const courseDateTime = new Date(`${courseDate}T${startTime}`);
+  // 获取当前本地时间
+  const currentDateTime = new Date();
+  // 比较并返回结果
+  return currentDateTime < courseDateTime;
 }
 
 // 工具：预约时间提示
@@ -138,11 +147,11 @@ Page({
     const weekStart = formatDateLocal(monday);
     const weekDates = getWeekDates(weekStart);
 
-    // 默认选中“周一”
+    // 如果selectedDate没有值，则默认选中“周一”
     this.setData({
       weekStart,
       weekDates,
-      selectedDate: weekDates[0].date
+      selectedDate: this.data.selectedDate || weekDates[0].date
     });
 
     // 拉取当前周课表
@@ -163,7 +172,7 @@ Page({
     const selectedType = e.currentTarget.dataset.type;
     this.setData({
       selectedType,
-      selectedDate: (this.data.weekDates[0] && this.data.weekDates[0].date) || this.data.selectedDate
+      // selectedDate: (this.data.weekDates[0] && this.data.weekDates[0].date) || this.data.selectedDate // 如果取消注释，那么在切换团课/私教时会自动将日期变为周一
     });
     this.updateLessons();
   },
@@ -199,6 +208,7 @@ Page({
     lessons.forEach(lesson => {
       lesson.hasBooked = lesson.students && lesson.students.some(s => s.studentId === userId);
       lesson.canBook = lesson.bookedCount < lesson.maxCount && !lesson.hasBooked && isCanBook(selectedDate, lesson.startTime);
+      lesson.canCancel = lesson.hasBooked && isCanCancel(selectedDate, lesson.startTime);
       lesson.bookTimeTip = getBookTimeTip(selectedDate, lesson.startTime);
     });
     lessons.sort((a, b) => {
