@@ -90,7 +90,7 @@ Page({
       },
       success: res => {
         wx.hideLoading()
-        console.log('login 云函数返回结果:', res)
+        // console.log('login 云函数返回结果:', res)
         
         // 根据 login 函数的返回结果判断是否是管理员
         if (res.result && res.result.role === 'admin') {
