@@ -15,6 +15,28 @@ Page({
       url: '/pages/youke/youke'
     });
   },
+  onLoad() {
+    const name = '';
+    const phone = '';
+
+    // wx.redirectTo({ url: '/pages/adminHome/adminHome' }); return //本地测试，用于直接跳转admin页面
+    wx.cloud.callFunction({
+      name: 'login',
+      data: { name, phone },
+      success: res => {
+        const role = res.result.role;
+        // console.log(res.result.LogInfo);//日志，可删
+        if (role === 'admin') {
+          wx.redirectTo({ url: '/pages/adminHome/adminHome' })
+        } else if (role === 'student') {
+          wx.switchTab({ url: '/pages/studentHome/studentHome' })
+        }
+      },
+      fail: () => {
+        wx.showToast({ title: '登录失败', icon: 'none' })
+      }
+    })
+  },
 
   onLogin() {
     const { name, phone } = this.data
@@ -24,8 +46,6 @@ Page({
       wx.showToast({ title: '请填写姓名和手机号', icon: 'none' })
       return
     }
-
-    // wx.redirectTo({ url: '/pages/adminHome/adminHome' }); return //本地测试，用于直接跳转admin页面
 
     wx.cloud.callFunction({
       name: 'login',

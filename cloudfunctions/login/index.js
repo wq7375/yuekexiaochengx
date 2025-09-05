@@ -6,6 +6,7 @@ const db = cloud.database()
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const { name='注意！程序可能有漏洞', phone = '请联系开发者！'} = event
+  console.log(name,phone);
 
   // 查是否已有当前 openid
   var logging = 'none';
@@ -18,6 +19,10 @@ exports.main = async (event, context) => {
     const user = existRes.data[0]
     // logging = logging+'user found:\nrole is: '+user.role+'\nid is: '+user._id+'\n';//日志，可删
     return { role: user.role, LogInfo: logging }
+  }
+
+  if ( !name || !phone ) {
+    return { role: 'none', LogInfo: logging }
   }
 
   // logging = logging+'no openid found, checking people lists...\n\n'; // 日志，可删
