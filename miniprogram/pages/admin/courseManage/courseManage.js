@@ -303,6 +303,7 @@ Page({
   onDeleteLesson(e) {
     const { date, type, index } = e.currentTarget.dataset
     const { weekStart } = this.data
+    console.log('删除课程参数:', { weekStart, date, type, lessonIndex: index })
   
     wx.showModal({
       title: '确认删除',
@@ -366,7 +367,9 @@ Page({
         }
       });
   },
-
+  goToschedules() {
+    wx.navigateTo({ url: '/pages/admin/schedules/schedules' });
+  },
   viewBookings(e) {
     const { date, type, index } = e.currentTarget.dataset;
     const courses = this.data.courses;
