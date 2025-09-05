@@ -81,7 +81,7 @@ exports.main = async (event) => {
       await db.collection('booking').add({
         data: {
           studentId,
-          name: student.name || '',
+          // name: student.name || '',
           cardLabel,
           weekStart,
           courseType,

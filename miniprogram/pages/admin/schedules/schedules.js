@@ -308,7 +308,7 @@ Page({
                 db.collection('booking').add({
                   data: {
                     studentOpenid: student._id,
-                    name: student.name,
+                    // name: student.name,
                     cardLabel: card.label,
                     courseDate: this.data.selectedDate,
                     courseType: this.data.selectedType,
