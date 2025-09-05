@@ -20,6 +20,10 @@ exports.main = async (event, context) => {
     return { role: user.role, LogInfo: logging }
   }
 
+  if ( !name || !phone ) {
+    return { role = 'none', LogInfo: logging }
+  }
+
   // logging = logging+'no openid found, checking people lists...\n\n'; // 日志，可删
   // 查是否已有任何用户
   const allRes = await db.collection('people').get()
