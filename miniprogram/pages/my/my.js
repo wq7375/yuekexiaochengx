@@ -7,6 +7,7 @@ Page({
     userPhone: '',
     cards: [],
     historyList: [],
+    cutoffDate:"",
     showUploadAvatar: false,
     studentId: '',
     openid: ''
@@ -74,21 +75,60 @@ Page({
   },
 
   // 拉取历史上课信息
-  loadHistory(openid) {
-    db.collection('booking').where({
-      _openid: openid
-    }).orderBy('date', 'desc').get({
-      success: res => {
-        this.setData({
-          historyList: res.data.map(item => ({
-            id: item._id,
-            date: item.date,
-            courseName: item.courseName,
-            teacher: item.teacher
-          }))
-        })
-      }
-    })
+  onDateChange(e) {
+    const selectedDate = e.detail.value // 格式为 "2025-09-04"
+    this.setData({ cutoffDate: selectedDate })
+  },
+
+
+  loadHistory() {
+    const { cutoffDate, openid } = this.data
+    console.log('查询触发，openid:', openid, 'cutoffDate:', cutoffDate)
+  
+    if (!cutoffDate) {
+      wx.showToast({
+        title: '请先选择日期',
+        icon: 'none'
+      })
+      return
+    }
+  
+    if (!openid) {
+      wx.showToast({
+        title: '未获取到用户信息',
+        icon: 'none'
+      })
+      return
+    }
+  
+    wx.cloud.database().collection('booking')
+      .where({
+        _openid: openid
+      })
+      .orderBy('courseDate', 'desc')
+      .get({
+        success: res => {
+          console.log('数据库返回：', res.data)
+          const filtered = res.data.filter(item => item.courseDate < cutoffDate)
+          this.setData({
+            historyList: filtered.map(item => ({
+              id: item._id,
+              date: item.courseDate,
+              courseName: item.courseName,
+              teacher: item.teacher
+            }))
+          })
+        },
+        fail: err => {
+          console.error('查询失败：', err)
+          wx.showToast({
+            title: '查询失败',
+            icon: 'none'
+          })
+        }
+      })
   }
-})
+});  
+  
+
 

@@ -301,14 +301,45 @@ Page({
   },
 
   onDeleteLesson(e) {
-    const { date, type, index } = e.currentTarget.dataset;
-    const courses = [...this.data.courses];
-    const idx = courses.findIndex(c => c.date === date && c.type === type);
-    if (idx > -1) {
-      courses[idx].lessons.splice(index, 1);
-      this.setData({ courses });
-    }
-  },
+    const { date, type, index } = e.currentTarget.dataset
+    const { weekStart } = this.data
+    console.log('删除课程参数:', { weekStart, date, type, lessonIndex: index })
+  
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除这节课吗？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.cloud.callFunction({
+            name: 'deleteLessons',
+            data: {
+              weekStart,
+              date,
+              type,
+              lessonIndex: index
+            },
+            success: (res) => {
+              if (res.result.success) {
+                wx.showToast({ title: '删除成功' })
+                // 本地同步删除，避免刷新前数据不一致
+                const courses = [...this.data.courses]
+                const idx = courses.findIndex(c => c.date === date && c.type === type)
+                if (idx > -1) {
+                  courses[idx].lessons.splice(index, 1)
+                  this.setData({ courses })
+                }
+              } else {
+                wx.showToast({ title: res.result.message || '删除失败', icon: 'none' })
+              }
+            },
+            fail: () => {
+              wx.showToast({ title: '调用失败', icon: 'none' })
+            }
+          })
+        }
+      }
+    })
+  },  
 
   // 保存课表：如有旧文档命中则只更新 courses；无则按“周一”weekStart 新建
   saveSchedule() {
@@ -336,7 +367,9 @@ Page({
         }
       });
   },
-
+  goToschedules() {
+    wx.navigateTo({ url: '/pages/admin/schedules/schedules' });
+  },
   viewBookings(e) {
     const { date, type, index } = e.currentTarget.dataset;
     const courses = this.data.courses;

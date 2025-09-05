@@ -3,63 +3,87 @@
     <button class="type-btn {{selectedType=='group'?'active':''}}" data-type="group" bindtap="switchType">团课</button>
     <button class="type-btn {{selectedType=='private'?'active':''}}" data-type="private" bindtap="switchType">私教</button>
   </view>
+
   <scroll-view scroll-x class="date-bar">
-    <block wx:for="{{dates}}" wx:key="date">
-      <button class="date-btn {{selectedDate==item?'active':''}}" data-date="{{item}}" bindtap="selectDate">{{item}}</button>
+    <block wx:for="{{dates}}" wx:key="date" wx:for-item="d">
+      <button class="date-btn {{selectedDate==d?'active':''}}" data-date="{{d}}" bindtap="selectDate">{{d}}</button>
     </block>
   </scroll-view>
+
   <view class="lessons-title">{{selectedDate}} {{selectedType=='group'?'团课':'私教'}}预约情况</view>
+
   <view class="lesson-list">
-    <block wx:for="{{lessons}}" wx:key="index">
+    <block wx:for="{{lessons}}" wx:key="index" wx:for-item="lesson" wx:for-index="lessonIdx">
       <view class="lesson-card">
-        <view class="lesson-time">时间：{{item.startTime}}-{{item.endTime}}</view>
+        <view class="lesson-time">时间：{{lesson.startTime}}-{{lesson.endTime}}</view>
+        <view class="lesson-info"><text class="lesson-label">老师：</text><text>{{lesson.teacher}}</text></view>
+        <view class="lesson-info"><text class="lesson-label">内容：</text><text>{{lesson.content}}</text></view>
+        <view class="lesson-info"><text class="lesson-label">人数：</text><text>{{lesson.bookedCount}}/{{lesson.maxCount}}</text></view>
+
         <view class="lesson-info">
-          <text class="lesson-label">老师：</text><text>{{item.teacher}}</text>
-        </view>
-        <view class="lesson-info">
-          <text class="lesson-label">内容：</text><text>{{item.content}}</text>
-        </view>
-        <view class="lesson-info">
-          <text class="lesson-label">人数：</text><text>{{item.bookedCount}}/{{item.maxCount}}</text>
-        </view>
-        <view class="lesson-info">
-          <text class="lesson-label">预约学生：</text>
+          <text class="lesson-label">学生：</text>
           <view class="student-list">
-            <block wx:for="{{item.students}}" wx:key="studentId">
-              <text class="student-name">{{item.name}}</text>
-              <button class="cancel-btn" size="mini" data-lesson-idx="{{index}}" data-stu-idx="{{index2}}" bindtap="forceCancel">强制取消</button>
+            <block wx:for="{{lesson.students}}" wx:key="studentId" wx:for-item="stu" wx:for-index="stuIdx">
+              <text class="student-name">{{stu.name}}</text>
+              <button class="cancel-btn" size="mini"
+                      data-lesson-idx="{{lessonIdx}}"
+                      data-stu-idx="{{stuIdx}}"
+                      bindtap="forceCancel">强制取消</button>
             </block>
-            <text wx:if="{{!item.students || item.students.length==0}}" class="empty-tip">暂无预约</text>
+            <text wx:if="{{!lesson.students || lesson.students.length==0}}" class="empty-tip">暂无预约</text>
           </view>
         </view>
+
         <view class="force-book-area">
-          <button class="force-book-btn" size="mini" data-lesson-idx="{{index}}" bindtap="openForceBookDialog">强制预约</button>
+          <button class="force-book-btn" size="mini"
+                  data-lesson-idx="{{lessonIdx}}"
+                  bindtap="openForceBookDialog">强制预约</button>
         </view>
       </view>
     </block>
     <view wx:if="{{lessons.length==0}}" class="empty-tip">当天暂无课程</view>
   </view>
 
-  <!-- 强制预约弹窗，选择学生和卡 -->
-  <view wx:if="{{forceBookDialogVisible}}" class="forcebook-dialog">
-    <view class="dialog-content">
-      <view class="dialog-title">选择学生和卡强制预约</view>
-      <picker mode="selector" range="{{studentList}}" range-key="name" value="{{selectedStudentIdx}}" bindchange="onForceBookStudentChange">
-        <view class="dialog-row">
-          <text class="dialog-label">学生：</text>
-          <text class="dialog-value">{{studentList.length > 0 ? studentList[selectedStudentIdx].name : '无学生'}}</text>
-        </view>
-      </picker>
-      <picker mode="selector" range="{{cardList}}" range-key="label" value="{{selectedCardIdx}}" bindchange="onForceBookCardChange">
-        <view class="dialog-row">
-          <text class="dialog-label">卡片：</text>
-          <text class="dialog-value">{{cardList.length > 0 ? cardList[selectedCardIdx].label : '无卡'}}</text>
-        </view>
-      </picker>
-      <view class="dialog-btn-row">
-        <button class="dialog-btn" size="mini" bindtap="submitForceBook">确定</button>
-        <button class="dialog-btn" size="mini" bindtap="closeForceBookDialog">取消</button>
+ <!-- 强制预约弹窗 -->
+<view wx:if="{{forceBookDialogVisible}}" class="forcebook-dialog">
+  <view class="dialog-content">
+    <view class="dialog-title">选择学生和卡强制预约</view>
+
+    <!-- 学生选择 -->
+    <picker mode="selector"
+            range="{{studentList}}"
+            range-key="name"
+            value="{{selectedStudentIdx}}"
+            bindchange="onForceBookStudentChange">
+      <view class="dialog-row">
+        <text class="dialog-label">学生：</text>
+        <text class="dialog-value">
+          {{studentList.length > 0 ? studentList[selectedStudentIdx].name : '无学生'}}
+        </text>
       </view>
+    </picker>
+
+    <!-- 卡片选择 -->
+    <picker mode="selector"
+            range="{{cardList}}"
+            range-key="label"
+            value="{{selectedCardIdx}}"
+            bindchange="onForceBookCardChange">
+      <view class="dialog-row">
+        <text class="dialog-label">卡片：</text>
+        <text class="dialog-value">
+          {{cardList.length > 0 ? cardList[selectedCardIdx].label : '无卡'}}
+        </text>
+      </view>
+    </picker>
+
+    <!-- 按钮 -->
+    <view class="dialog-btn-row">
+      <button class="dialog-btn" size="mini" bindtap="submitForceBook">确定</button>
+      <button class="dialog-btn" size="mini" bindtap="closeForceBookDialog">取消</button>
     </view>
   </view>
 </view>
+</view>
+
+
