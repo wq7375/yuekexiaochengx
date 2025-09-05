@@ -29,7 +29,7 @@ exports.main = async (event) => {
 
     // 查询学生信息
     const stuRes = await db.collection('people').where({ _id: studentId }).get();
-    if (!stuRes || !stuRes.data || stuRes.data.length === 0) {
+    if (!stuRes?.data?.length) {
       console.error('未找到学生信息:', studentId);
       return { success: false, msg: '未找到该学生', LogInfo: logging };
     }
