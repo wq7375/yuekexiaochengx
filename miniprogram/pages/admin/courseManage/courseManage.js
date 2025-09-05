@@ -1,5 +1,6 @@
-const db = wx.cloud.database();
-const _ = db.command;
+// 移除原有的数据库引用
+// const db = wx.cloud.database();
+// const _ = db.command;
 
 const hours = ['06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'];
 const minutes = ['00','15','30','45'];
@@ -28,7 +29,7 @@ function startOfWeekMonday(baseDate, offsetDays = 0) {
   return d;
 }
 /**
- * 取本周/下周的“周一”字符串，以及为兼容旧数据的“周日锚点”字符串
+ * 取本周/下周的"周一"字符串，以及为兼容旧数据的"周日锚点"字符串
  * - mondayStr: 本周（或下周）周一
  * - sundayAnchorStr: 周一的前一天（周日）。用于兼容旧数据把 weekStart 存成周日的情况
  */
@@ -93,143 +94,62 @@ Page({
   // 初始化课表
   initWeek() {
     const { weekOffset } = this.data;
-    const { mondayDate, mondayStr, sundayAnchorStr, weekEndStr } = getWeekStartStrings(weekOffset);
+    const { mondayStr } = getWeekStartStrings(weekOffset);
     this.setData({ weekStart: mondayStr });
 
-    // 兼容查询：既查“周一锚点”，也查“周日锚点”的旧文档
-    db.collection('schedules')
-      .where({ weekStart: _.in([mondayStr, sundayAnchorStr]) })
-      .limit(1)
-      .get({
-        success: res => {
-          if (res.data.length) {
-            // 命中文档（可能是旧的“周日锚点”）
-            let doc = res.data[0];
-            let courses = Array.isArray(doc.courses) ? doc.courses : [];
-
-            // 只保留本周一到本周日的 7 天数据，杜绝 8-31 这样的跨周日期混入
-            const startTs = parseDateLocal(mondayStr).getTime();
-            const endTs = parseDateLocal(weekEndStr).getTime();
-            courses = courses.filter(c => {
-              if (!c || !c.date) return false;
-              const ts = parseDateLocal(c.date).getTime();
-              return ts >= startTs && ts <= endTs;
-            });
-
-            // 如果缺失某天/某类型，补齐空壳（保证管理端始终看到完整 7 天 x 2 类型）
-            const wantDates = [...Array(7)].map((_, i) => formatDateLocal(addDaysLocal(mondayDate, i)));
-            const wantTypes = ['group', 'private'];
-            for (const dateStr of wantDates) {
-              for (const tp of wantTypes) {
-                const idx = courses.findIndex(x => x.date === dateStr && x.type === tp);
-                if (idx === -1) {
-                  courses.push({ date: dateStr, type: tp, lessons: [] });
-                }
-              }
-            }
-            // 稳定排序：按日期升序、类型（group 在前，再 private）
-            courses.sort((a, b) => {
-              const ta = parseDateLocal(a.date).getTime();
-              const tb = parseDateLocal(b.date).getTime();
-              if (ta !== tb) return ta - tb;
-              const rank = t => (t === 'group' ? 0 : 1);
-              return rank(a.type) - rank(b.type);
-            });
-
-            this.setData({
-              courses,
-              selectedDate: this.data.selectedDate || mondayStr,
-              selectedType: this.data.selectedType || 'group'
-            });
-          } else {
-            // 没有文档：按“周一”规范生成 7 天空壳
-            const courses = [];
-            for (let i = 0; i < 7; i++) {
-              const date = formatDateLocal(addDaysLocal(mondayDate, i));
-              courses.push({ date, type: 'group', lessons: [] });
-              courses.push({ date, type: 'private', lessons: [] });
-            }
-            this.setData({
-              courses,
-              selectedDate: mondayStr,
-              selectedType: 'group'
-            });
-          }
-        },
-        fail: () => {
-          wx.showToast({ title: '课表加载失败', icon: 'none' });
+    wx.cloud.callFunction({
+      name: 'manageSchedule',
+      data: {
+        operation: 'getSchedule',
+        data: { weekOffset }
+      },
+      success: res => {
+        if (res.result.success) {
+          const data = res.result.data;
+          this.setData({
+            courses: data.courses,
+            selectedDate: data.selectedDate,
+            selectedType: data.selectedType
+          });
+        } else {
+          wx.showToast({ title: res.result.message || '课表加载失败', icon: 'none' });
         }
-      });
+      },
+      fail: () => {
+        wx.showToast({ title: '课表加载失败', icon: 'none' });
+      }
+    });
   },
 
   // 复制上周课表
   copyLastWeekSchedule() {
     const { weekOffset } = this.data;
-    const { mondayStr: targetWeekStart } = getWeekStartStrings(weekOffset);
-    const { mondayStr: lastWeekStart, sundayAnchorStr: lastWeekSundayAnchor } = getWeekStartStrings(weekOffset - 7);
-
+    
     wx.showLoading({ title: '复制中...' });
-    db.collection('schedules')
-      .where({ weekStart: _.in([lastWeekStart, lastWeekSundayAnchor]) })
-      .limit(1)
-      .get({
-        success: res => {
-          wx.hideLoading();
-          if (!res.data.length) {
-            wx.showToast({ title: '上周课表不存在', icon: 'none' });
-            return;
-          }
-          // 深拷贝课程，清空预约相关字段，仅保留本周 7 天的部分
-          const { mondayDate: targetMonday, mondayStr: targetMondayStr, weekEndStr: targetWeekEndStr } = getWeekStartStrings(weekOffset);
-          const startTs = parseDateLocal(targetMondayStr).getTime();
-          const endTs = parseDateLocal(targetWeekEndStr).getTime();
-
-          let oldCourses = JSON.parse(JSON.stringify(res.data[0].courses || []));
-          oldCourses = oldCourses.filter(c => {
-            if (!c || !c.date) return false;
-            // 将旧数据的日期平移到目标周：用“星期几”来映射
-            const ts = parseDateLocal(c.date).getTime();
-            // 先把原日期的“星期几”算出来，再映射到目标周
-            const dayIdx = new Date(parseDateLocal(c.date)).getDay() || 7; // 周日=7
-            // 目标日期 = 目标周一 + (dayIdx-1)
-            const mappedDate = formatDateLocal(addDaysLocal(targetMonday, dayIdx - 1));
-            c.date = mappedDate;
-            return true;
+    wx.cloud.callFunction({
+      name: 'manageSchedule',
+      data: {
+        operation: 'copyLastWeek',
+        data: { weekOffset }
+      },
+      success: res => {
+        wx.hideLoading();
+        if (res.result.success) {
+          this.setData({
+            courses: res.result.data.courses,
+            selectedDate: res.result.data.selectedDate,
+            selectedType: res.result.data.selectedType
           });
-
-          oldCourses.forEach(c => {
-            (c.lessons || []).forEach(l => {
-              l.bookedCount = 0;
-              l.students = [];
-            });
-          });
-
-          // 补齐漏天/漏类型
-          const dates = [...Array(7)].map((_, i) => formatDateLocal(addDaysLocal(targetMonday, i)));
-          const tps = ['group', 'private'];
-          for (const d of dates) {
-            for (const tp of tps) {
-              if (!oldCourses.find(x => x.date === d && x.type === tp)) {
-                oldCourses.push({ date: d, type: tp, lessons: [] });
-              }
-            }
-          }
-          oldCourses.sort((a, b) => {
-            const ta = parseDateLocal(a.date).getTime();
-            const tb = parseDateLocal(b.date).getTime();
-            if (ta !== tb) return ta - tb;
-            const rank = t => (t === 'group' ? 0 : 1);
-            return rank(a.type) - rank(b.type);
-          });
-
-          this.setData({ courses: oldCourses, selectedDate: targetMondayStr, selectedType: 'group' });
-          wx.showToast({ title: '已复制上周课表，可直接修改', icon: 'success' });
-        },
-        fail: () => {
-          wx.hideLoading();
-          wx.showToast({ title: '复制失败', icon: 'none' });
+          wx.showToast({ title: res.result.message, icon: 'success' });
+        } else {
+          wx.showToast({ title: res.result.message || '复制失败', icon: 'none' });
         }
-      });
+      },
+      fail: () => {
+        wx.hideLoading();
+        wx.showToast({ title: '复制失败', icon: 'none' });
+      }
+    });
   },
 
   // 选中某天某类型
@@ -243,7 +163,7 @@ Page({
     const { field } = e.currentTarget.dataset;
     const value = e.detail.value;
     const editingLesson = { ...this.data.editingLesson };
-    editingLesson[field] = field.includes('Hour') ? this.data.hours[value] : this.data.minutes[value];
+    editingLesson[field] = field.includes('Hour') ? hours[value] : minutes[value];
     this.setData({ editingLesson });
   },
 
@@ -301,75 +221,70 @@ Page({
   },
 
   onDeleteLesson(e) {
-    const { date, type, index } = e.currentTarget.dataset
-    const { weekStart } = this.data
-    console.log('删除课程参数:', { weekStart, date, type, lessonIndex: index })
-  
+    const { date, type, index } = e.currentTarget.dataset;
+    const { weekStart } = this.data;
+    
     wx.showModal({
       title: '确认删除',
       content: '确定要删除这节课吗？',
       success: (res) => {
         if (res.confirm) {
           wx.cloud.callFunction({
-            name: 'deleteLessons',
+            name: 'manageSchedule',
             data: {
-              weekStart,
-              date,
-              type,
-              lessonIndex: index
+              operation: 'deleteLesson',
+              data: { weekStart, date, type, lessonIndex: index }
             },
             success: (res) => {
               if (res.result.success) {
-                wx.showToast({ title: '删除成功' })
+                wx.showToast({ title: '删除成功' });
                 // 本地同步删除，避免刷新前数据不一致
-                const courses = [...this.data.courses]
-                const idx = courses.findIndex(c => c.date === date && c.type === type)
+                const courses = [...this.data.courses];
+                const idx = courses.findIndex(c => c.date === date && c.type === type);
                 if (idx > -1) {
-                  courses[idx].lessons.splice(index, 1)
-                  this.setData({ courses })
+                  courses[idx].lessons.splice(index, 1);
+                  this.setData({ courses });
                 }
               } else {
-                wx.showToast({ title: res.result.message || '删除失败', icon: 'none' })
+                wx.showToast({ title: res.result.message || '删除失败', icon: 'none' });
               }
             },
             fail: () => {
-              wx.showToast({ title: '调用失败', icon: 'none' })
+              wx.showToast({ title: '删除操作失败', icon: 'none' });
             }
-          })
+          });
         }
       }
-    })
-  },  
+    });
+  },
 
-  // 保存课表：如有旧文档命中则只更新 courses；无则按“周一”weekStart 新建
+  // 保存课表
   saveSchedule() {
     const { weekStart, courses } = this.data;
-    const { mondayStr, sundayAnchorStr } = getWeekStartStrings(0); // 这里的 0 不影响 weekStart 变量，只用于 in 查询备选
-    db.collection('schedules')
-      .where({ weekStart: _.in([weekStart, sundayAnchorStr]) })
-      .limit(1)
-      .get({
-        success: res => {
-          if (res.data.length) {
-            db.collection('schedules').doc(res.data[0]._id).update({
-              data: { courses },
-              success: () => { wx.showToast({ title: '课表已保存' }); }
-            });
-          } else {
-            db.collection('schedules').add({
-              data: { weekStart, courses },
-              success: () => { wx.showToast({ title: '课表已上传' }); }
-            });
-          }
-        },
-        fail: () => {
-          wx.showToast({ title: '保存失败', icon: 'none' });
+    
+    wx.cloud.callFunction({
+      name: 'manageSchedule',
+      data: {
+        operation: 'saveSchedule',
+        data: { weekStart, courses }
+      },
+      success: res => {
+        if (res.result.success) {
+          wx.showToast({ title: res.result.message });
+        } else {
+          wx.showToast({ title: res.result.message || '保存失败', icon: 'none' });
         }
-      });
+      },
+      fail: () => {
+        wx.showToast({ title: '保存失败', icon: 'none' });
+      }
+    });
   },
+  
   goToschedules() {
     wx.navigateTo({ url: '/pages/admin/schedules/schedules' });
   },
+  
   viewBookings(e) {
     const { date, type, index } = e.currentTarget.dataset;
     const courses = this.data.courses;
@@ -386,4 +301,3 @@ Page({
     });
   }
 });
-
