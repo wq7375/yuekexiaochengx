@@ -45,7 +45,7 @@
   <view class="section">
     <block wx:for="{{historyList}}" wx:key="id">
       <view class="history-item">
-        <text>{{item.date}} {{item.startTime}}-{{item.endTime}}: {{item.courseName}}（{{item.teacher}}）</text>
+        <text>{{item.date}} {{item.startTime}}-{{item.endTime}}: {{item.courseName}}({{item.teacher}})</text>
       </view>
     </block>
   </view>
