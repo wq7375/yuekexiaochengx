@@ -224,6 +224,7 @@ Page({
     const idx = e.currentTarget.dataset.index;
     const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
   
+    wx.showLoading({ title: '预约中...' })
     wx.cloud.callFunction({
       name: 'reserveClass',
       data: {
@@ -252,7 +253,7 @@ Page({
           wx.showToast({
             title: '预约成功',
             icon: 'success',
-            duration: 2000
+            duration: 1500
           })
         });
       } else {
@@ -266,6 +267,7 @@ Page({
     const idx = e.currentTarget.dataset.index;
     const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
 
+    wx.showLoading({ title: '取消中...' })
     wx.cloud.callFunction({
       name: 'reserveClass',
       data: {
@@ -294,7 +296,7 @@ Page({
           wx.showToast({
             title: '取消成功',
             icon: 'success',
-            duration: 2000
+            duration: 1500
           })
         });
       } else {
