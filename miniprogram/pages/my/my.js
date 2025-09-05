@@ -32,10 +32,11 @@ Page({
           cards: user.cards || [],
           studentId: user._id,
           openid: user._openid,
-          showUploadAvatar: !user.avatarUrl
+          showUploadAvatar: !user.avatarUrl,
+          cutoffDate: new Date().toLocaleDateString('sv-SE')
         });
         
-        this.loadHistory(user._openid);
+        this.loadHistory();
       } else {
         wx.showToast({ title: '未获取到用户信息', icon: 'none' });
       }
@@ -82,8 +83,8 @@ Page({
 
 
   loadHistory() {
-    const { cutoffDate, openid } = this.data
-    console.log('查询触发，openid:', openid, 'cutoffDate:', cutoffDate)
+    const { cutoffDate, studentId } = this.data
+    // console.log('查询触发，openid:', studentId, 'cutoffDate:', cutoffDate)
   
     if (!cutoffDate) {
       wx.showToast({
@@ -93,7 +94,7 @@ Page({
       return
     }
   
-    if (!openid) {
+    if (!studentId) {
       wx.showToast({
         title: '未获取到用户信息',
         icon: 'none'
@@ -103,7 +104,7 @@ Page({
   
     wx.cloud.database().collection('booking')
       .where({
-        _openid: openid
+        studentId
       })
       .orderBy('courseDate', 'desc')
       .get({
