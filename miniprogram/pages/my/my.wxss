@@ -106,3 +106,18 @@
   font-size: 18rpx;
   margin-top: 24rpx;
 }
+.container {
+  padding: 20rpx;
+}
+.section {
+  margin-bottom: 30rpx;
+}
+.date-picker {
+  padding: 10rpx;
+  background-color: #f0f0f0;
+  border-radius: 8rpx;
+}
+.history-item {
+  padding: 10rpx;
+  border-bottom: 1px solid #ddd;
+}

@@ -212,9 +212,8 @@ Page({
   // 预约课程
   bookLesson(e) {
     const idx = e.currentTarget.dataset.index;
-    // const lesson = this.data.lessons[idx];//变量lesson未使用，先注释掉
     const { weekStart, selectedType, selectedDate, cardLabel, userId } = this.data;
-
+  
     wx.cloud.callFunction({
       name: 'reserveClass',
       data: {
@@ -228,7 +227,6 @@ Page({
       }
     }).then(res => {
       if (res.result.success) {
-        // 更新 schedules
         wx.cloud.callFunction({
           name: 'updateSchedule',
           data: {
@@ -239,12 +237,20 @@ Page({
             action: 'book',
             student: { studentId: userId, name: this.data.userName, cardLabel }
           }
-        }).then(() => this.initWeek());
+        }).then(() => {
+          this.initWeek()
+          wx.showToast({
+            title: '预约成功',
+            icon: 'success',
+            duration: 2000
+          })
+        });
       } else {
         wx.showToast({ title: res.result.msg || '预约失败', icon: 'none' });
       }
     });
   },
+  
 
   cancelLesson(e) {
     const idx = e.currentTarget.dataset.index;
@@ -273,7 +279,14 @@ Page({
             action: 'cancel',
             student: { studentId: userId }
           }
-        }).then(() => this.initWeek());
+        }).then(() => {
+          this.initWeek()
+          wx.showToast({
+            title: '取消成功',
+            icon: 'success',
+            duration: 2000
+          })
+        });
       } else {
         wx.showToast({ title: res.result.msg || '取消失败', icon: 'none' });
       }
