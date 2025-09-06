@@ -86,7 +86,7 @@ exports.main = async (event, context) => {
 // 获取课表
 async function getSchedule(data) {
   const { weekOffset = 0 } = data
-  const { mondayStr, sundayAnchorStr, weekEndStr } = getWeekStartStrings(weekOffset)
+  const { mondayStr, sundayAnchorStr, weekEndStr, mondayDate } = getWeekStartStrings(weekOffset)
   
   const res = await db.collection('schedules')
     .where({ weekStart: _.in([mondayStr, sundayAnchorStr]) }) // ? 为什么要在周一和周日里找？
@@ -95,7 +95,6 @@ async function getSchedule(data) {
   
   if (res.data.length === 0) {
     // 没有文档：生成7天空壳
-    const { mondayDate } = getWeekStartStrings(weekOffset)
     const courses = []
     for (let i = 0; i < 7; i++) {
       const date = formatDateLocal(addDaysLocal(mondayDate, i))
@@ -229,7 +228,6 @@ async function deleteLesson(data) {
 // 复制上周课表
 async function copyLastWeek(data) {
   const { weekOffset } = data
-  const { mondayStr: targetWeekStart } = getWeekStartStrings(weekOffset)
   const { mondayStr: lastWeekStart, sundayAnchorStr: lastWeekSundayAnchor } = getWeekStartStrings(weekOffset - 7)
   
   // 获取上周课表
@@ -259,11 +257,18 @@ async function copyLastWeek(data) {
   
   // 清空预约信息
   oldCourses.forEach(c => {
-    (c.lessons || []).forEach(l => {
-      l.bookedCount = 0
-      l.students = []
-    })
-  })
+    // 遍历oldCourses数组中的每一个课程项(c)
+    const lessonsObj = c.lessons || {};
+    
+    for (const lessonId in lessonsObj) {
+      // 排除特殊的numOfLessonsAdded属性和原型链上的属性
+      if (lessonId === 'numOfLessonsAdded' || !lessonsObj.hasOwnProperty(lessonId)) continue;
+      
+      const lesson = lessonsObj[lessonId];
+      lesson.bookedCount = 0; // 将当前课程的已预约人数重置为0
+      lesson.students = []; // 将当前课程的学生列表清空
+    }
+  });
   
   // 补齐缺失的日期和类型
   const dates = [...Array(7)].map((_, i) => formatDateLocal(addDaysLocal(targetMonday, i)))
@@ -271,7 +276,7 @@ async function copyLastWeek(data) {
   for (const d of dates) {
     for (const tp of tps) {
       if (!oldCourses.find(x => x.date === d && x.type === tp)) {
-        oldCourses.push({ date: d, type: tp, lessons: [] })
+        oldCourses.push({ date: d, type: tp, lessons: {numOfLessonsAdded: 0,} })
       }
     }
   }

@@ -73,9 +73,11 @@ Page({
   },
 
   onLoad() {
-    this.initWeek();
     this.checkAdminPermission();
+    this.initWeek();
+    // console.log(this.data)
   },
+
   // 检查管理员权限
   checkAdminPermission() {
     wx.showLoading({ title: '检查权限中' })
