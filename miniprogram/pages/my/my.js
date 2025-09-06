@@ -16,6 +16,11 @@ Page({
   onLoad() {
     this.initStudentInfo()
   },
+  onShow() {
+    if (this.data.cutoffDate) {
+      this.loadHistory()
+    }
+  },
 
   async initStudentInfo() {
     try {
