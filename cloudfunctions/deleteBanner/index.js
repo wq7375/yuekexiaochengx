@@ -40,6 +40,7 @@ exports.main = async (event, context) => {
     
     return { success: true, data: result }
   } catch (error) {
+    console.error('删除轮播图错误:', error)
     return { success: false, error: error.message }
   }
 }
