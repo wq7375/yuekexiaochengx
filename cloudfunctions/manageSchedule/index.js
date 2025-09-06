@@ -86,7 +86,7 @@ exports.main = async (event, context) => {
 // 获取课表
 async function getSchedule(data) {
   const { weekOffset = 0 } = data
-  const { mondayStr, sundayAnchorStr, weekEndStr, mondayDate } = getWeekStartStrings(weekOffset)
+  const { mondayStr, sundayAnchorStr, weekEndStr } = getWeekStartStrings(weekOffset)
   
   const res = await db.collection('schedules')
     .where({ weekStart: _.in([mondayStr, sundayAnchorStr]) }) // ? 为什么要在周一和周日里找？
@@ -95,6 +95,7 @@ async function getSchedule(data) {
   
   if (res.data.length === 0) {
     // 没有文档：生成7天空壳
+    const { mondayDate } = getWeekStartStrings(weekOffset)
     const courses = []
     for (let i = 0; i < 7; i++) {
       const date = formatDateLocal(addDaysLocal(mondayDate, i))
@@ -211,10 +212,18 @@ async function deleteLesson(data) {
   }
   
   // 删除指定课程
-  if (courses[courseIndex].lessons && courses[courseIndex].lessons.length > lessonIndex) {
-    courses[courseIndex].lessons.splice(lessonIndex, 1)
+  if (courses[courseIndex].lessons) {
+    const lessonsObj = courses[courseIndex].lessons;
+    
+    // 检查要删除的课程ID是否存在
+    if (lessonsObj.hasOwnProperty(lessonIndex) && lessonIndex !== "numOfLessonsAdded") {
+      // 使用delete操作符删除指定课程
+      delete lessonsObj[lessonIndex];
+    } else {
+      return { success: false, message: '课程ID不存在' }
+    }
   } else {
-    return { success: false, message: '课程索引错误' }
+    return { success: false, message: '课程列表不存在' }
   }
   
   // 更新数据库
@@ -228,6 +237,7 @@ async function deleteLesson(data) {
 // 复制上周课表
 async function copyLastWeek(data) {
   const { weekOffset } = data
+  const { mondayStr: targetWeekStart } = getWeekStartStrings(weekOffset) 
   const { mondayStr: lastWeekStart, sundayAnchorStr: lastWeekSundayAnchor } = getWeekStartStrings(weekOffset - 7)
   
   // 获取上周课表

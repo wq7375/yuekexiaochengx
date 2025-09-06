@@ -21,33 +21,37 @@
 <!-- 课程列表 -->
 <view class="lesson-list">
   <block wx:for="{{courses}}" wx:key="date-type" wx:for-item="course">
-  <view wx:if="{{selectedDate==course.date && selectedType==course.type}}">
-    <view class="lesson-card" wx:for="{{course.lessons}}" wx:key="idx" wx:for-item="lesson" wx:for-index="idx">
-      <view>时间：{{lesson.startTime}}-{{lesson.endTime}}</view>
-      <view>老师：{{lesson.teacher}}</view>
-      <view>内容：{{lesson.content}}</view>
-      <view>人数：{{lesson.bookedCount}}/{{lesson.maxCount}}</view>
-      <view>
-        <button 
-          size="mini" 
-          data-date="{{course.date}}" 
-          data-type="{{course.type}}" 
-          data-index="{{idx}}" 
-          bindtap="onDeleteLesson">
-          删除
-        </button>
-       
-    <button size="mini" class="icon-btn" bindtap='goToschedules'>
-      <text>查看预约</text>
-    </button>
-
+    <view wx:if="{{selectedDate==course.date && selectedType==course.type}}">
+      <!-- 获取所有真正的课程对象 -->
+      <view wx:for="{{course.lessons}}" wx:for-item="lesson" wx:key="startTime" wx:for-index="idx">
+        <!-- 过滤掉非课程属性（如numOfLessonsAdded） -->
+        <view class="lesson-card" wx:if="{{lesson && lesson.startTime}}">
+          <view>时间：{{lesson.startTime}}-{{lesson.endTime}}</view>
+          <view>老师：{{lesson.teacher}}</view>
+          <view>内容：{{lesson.content}}</view>
+          <view>人数：{{lesson.bookedCount}}/{{lesson.maxCount}}</view>
+          <view>
+            <button 
+              size="mini" 
+              data-date="{{course.date}}" 
+              data-type="{{course.type}}" 
+              data-id="{{idx}}" 
+              bindtap="onDeleteLesson">
+              删除
+            </button>
+            <button size="mini" class="icon-btn" bindtap='goToschedules'>
+              <text>查看预约</text>
+            </button>
+          </view>
+        </view>
       </view>
+      
+      <!-- 判断是否有真实课程 -->
+      <view wx:if="{{!hasRealLessons(course.lessons)}}" style="color:#aaa;">暂无课程</view>
     </view>
-    <view wx:if="{{course.lessons.length==0}}" style="color:#aaa;">暂无课程</view>
-  </view>
-</block>
-
+  </block>
 </view>
+
 <!-- 新增课程表单 -->
 <view class="add-lesson-form">
   <view class="form-title">新增课程</view>

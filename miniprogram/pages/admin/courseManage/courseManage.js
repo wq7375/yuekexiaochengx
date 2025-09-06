@@ -288,7 +288,7 @@ Page({
   },
 
   onDeleteLesson(e) {
-    const { date, type, index } = e.currentTarget.dataset;
+    const { date, type, id } = e.currentTarget.dataset;
     const { weekStart } = this.data;
     
     wx.showModal({
@@ -300,7 +300,7 @@ Page({
             name: 'manageSchedule',
             data: {
               operation: 'deleteLesson',
-              data: { weekStart, date, type, lessonIndex: index }
+              data: { weekStart, date, type, lessonIndex: id }
             },
             success: (res) => {
               if (res.result.success) {
@@ -366,5 +366,21 @@ Page({
       title: '预约名单',
       content: names || '暂无预约'
     });
-  }
+  },
+
+  // 辅助函数，用于检查课表中是否有课
+  hasRealLessons: function(lessonsObj) {
+    if (!lessonsObj) return false;
+    
+    // 遍历对象，排除numOfLessonsAdded等非课程属性
+    for (let key in lessonsObj) {
+      if (key !== 'numOfLessonsAdded' && 
+          lessonsObj[key] && 
+          typeof lessonsObj[key] === 'object' && 
+          lessonsObj.hasOwnProperty(key)) {
+        return true;
+      }
+    }
+    return false;
+  },
 });
