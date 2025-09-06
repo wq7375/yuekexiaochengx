@@ -44,7 +44,7 @@ exports.main = async (event, context) => {
     console.log('执行操作:', operation, 'OpenID:', wxContext.OPENID);
 
     // 调用 login 云函数检查权限
-    wx.cloud.callFunction({
+    cloud.callFunction({
       name: 'login', 
       data: {
         name: '',
@@ -89,7 +89,7 @@ async function getSchedule(data) {
   const { mondayStr, sundayAnchorStr, weekEndStr } = getWeekStartStrings(weekOffset)
   
   const res = await db.collection('schedules')
-    .where({ weekStart: _.in([mondayStr, sundayAnchorStr]) })
+    .where({ weekStart: _.in([mondayStr, sundayAnchorStr]) }) // ? 为什么要在周一和周日里找？
     .limit(1)
     .get()
   
@@ -99,8 +99,9 @@ async function getSchedule(data) {
     const courses = []
     for (let i = 0; i < 7; i++) {
       const date = formatDateLocal(addDaysLocal(mondayDate, i))
-      courses.push({ date, type: 'group', lessons: [] })
-      courses.push({ date, type: 'private', lessons: [] })
+      courses.push({ date, type: 'group', lessons: {numOfLessonsAdded:0,} })
+      courses.push({ date, type: 'private', lessons: {numOfLessonsAdded:0,} })
+      // 属性numOfLessonsAdded用于给每个课程生成id
     }
     
     return { 
