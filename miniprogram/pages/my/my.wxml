@@ -12,6 +12,12 @@
     </view>
   </view>
 
+  <!-- 跳转管理员页面 -->
+  <view class="section-card" wx:if="{{role === 'admin'}}">
+    <text>您现在是管理员，您可以：</text>
+    <button bind:tap="goToAdminHome" style="background: #fff; border-radius: 18rpx; box-shadow: 10rpx 5rpx 5rpx rgba(0,0,0,0.08);">跳转至管理员页面</button>
+  </view>
+
   <!-- 卡片区块 -->
   <view class="section-card">
     <view class="section-title">我的卡</view>
@@ -30,27 +36,23 @@
   </view>
 
   <!-- 历史上课记录 -->
-  <view class="container">
-    <view class="section-card">
+  <view class="section-card">
     <view class="section-title">预约记录</view> 
     <view class="section">
-    <text>选择截止日期：</text>
-    <picker mode="date" bindchange="onDateChange">
-    <view class="date-picker">{{cutoffDate || '请选择日期'}}</view>
-    </picker>
+      <text>选择截止日期：</text>
+      <picker mode="date" bindchange="onDateChange">
+        <view class="date-picker">{{cutoffDate || '请选择日期'}}</view>
+      </picker>
+    </view>
+    <view class="section">
+      <button bindtap="loadHistory">查询预约记录</button>
+    </view>
+    <view class="section">
+      <block wx:for="{{historyList}}" wx:key="id">
+        <view class="history-item">
+          <text>{{item.date}} {{item.startTime}}-{{item.endTime}}: {{item.courseName}}({{item.teacher}})</text>
+        </view>
+      </block>
+    </view>
   </view>
-  <view class="section">
-    <button bindtap="loadHistory">查询预约记录</button>
-  </view>
-  <view class="section">
-    <block wx:for="{{historyList}}" wx:key="id">
-      <view class="history-item">
-        <text>{{item.date}} {{item.startTime}}-{{item.endTime}}: {{item.courseName}}({{item.teacher}})</text>
-      </view>
-    </block>
-  </view>
-     </view>
-    
-  
-</view>
 </view>

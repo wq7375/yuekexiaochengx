@@ -13,6 +13,11 @@ Page({
       url: '/pages/admin/bannerManage/bannerManage'
     })
   },
+  goToStu() {
+    wx.switchTab({
+      url: '/pages/studentHome/studentHome',
+    })
+  },
   goTotM() {
     wx.navigateTo({
       url: '/pages/admin/teacherManage/teacherManage'

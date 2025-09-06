@@ -5,6 +5,7 @@ Page({
     avatarUrl: '',
     userName: '',
     userPhone: '',
+    role: 'none',
     cards: [],
     historyList: [],
     cutoffDate:"",
@@ -16,27 +17,59 @@ Page({
   onLoad() {
     this.initStudentInfo()
   },
+  onShow() {
+    if (this.data.cutoffDate) {
+      this.initStudentInfo(false);
+    }
+  },
+  goToAdminHome() {
+    wx.showLoading({
+      title: '验证中...',
+    })
+    wx.cloud.callFunction({
+      name: 'login',
+      success: res => {
+        const role = res.result.role;
+        if (role === 'admin') {
+          wx.redirectTo({ url: '/pages/adminHome/adminHome' })
+        } else {
+          wx.showToast({
+            title: '您不是管理员，无法跳转！',
+          })
+        }
+        wx.hideLoading();
+      },
+      fail: () => {
+        wx.showToast({ title: '身份验证失败', icon: 'none' });
+      }
+    })
+  },
 
-  async initStudentInfo() {
+  async initStudentInfo(isFirstTime = true) {
     try {
       const res = await wx.cloud.callFunction({
         name: 'getInfo'
       });
-      
+
       if (res.result) {
         const user = res.result;
-        this.setData({
-          userName: user.name || '',
-          userPhone: user.phone || '',
-          avatarUrl: user.avatarUrl || '',
-          cards: user.cards || [],
-          studentId: user._id,
-          openid: user._openid,
-          showUploadAvatar: !user.avatarUrl,
-          cutoffDate: new Date(Date.now() + 259200000).toLocaleDateString('sv-SE') //默认显示未来三天以及过去的课表
-        });
-        
-        this.loadHistory();
+        if (isFirstTime) { // 第一次加载时运行的代码
+          this.setData({
+            userName: user.name || '',
+            userPhone: user.phone || '',
+            role: user.role || 'none',
+            avatarUrl: user.avatarUrl || '',
+            cards: user.cards || [],
+            studentId: user._id,
+            openid: user._openid,
+            showUploadAvatar: !user.avatarUrl,
+            cutoffDate: new Date(Date.now() + 259200000).toLocaleDateString('sv-SE') //默认显示未来三天以及过去的课表
+          });  
+        } else { // 不是第一次加载则只更新卡片信息
+          this.setData({cards: user.cards || [],})
+        }
+
+        this.loadHistory()
       } else {
         wx.showToast({ title: '未获取到用户信息', icon: 'none' });
       }
