@@ -63,8 +63,8 @@ Page({
       minCount: ' ',
       maxCount: ' ',
       isLoading: true,
-    isAdmin: false,
-    errorMessage: ''
+      isAdmin: false,
+      errorMessage: ''
     },
     hours,
     minutes,
@@ -73,7 +73,6 @@ Page({
   },
 
   onLoad() {
-    this.checkEditPermission();
     this.initWeek();
     this.checkAdminPermission();
   },
@@ -127,11 +126,6 @@ Page({
         wx.showToast({ title: '权限检查失败', icon: 'none' })
       }
     })
-  },
-
-  // 检查是否可制定下周课表
-  checkEditPermission() {
-    this.setData({ canSetNextWeek: canSetNextWeekSchedule() });
   },
 
   // 切换本周/下周课表

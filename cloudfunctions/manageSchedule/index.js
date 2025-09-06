@@ -7,7 +7,6 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-// [保持原有的辅助函数不变]
 // 辅助函数（与前端相同的日期处理逻辑）
 function pad(n) { return String(n).padStart(2, '0') }
 function formatDateLocal(d) {
@@ -80,7 +79,6 @@ exports.main = async (event, context) => {
   }
 }
 
-// [保持原有的getSchedule、saveSchedule、deleteLesson、copyLastWeek函数不变]
 // 获取课表
 async function getSchedule(data) {
   const { weekOffset = 0 } = data
