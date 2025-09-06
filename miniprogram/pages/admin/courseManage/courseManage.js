@@ -243,7 +243,17 @@ Page({
 
     const idx = courses.findIndex(c => c.date === selectedDate && c.type === selectedType);
     if (idx > -1) {
-      courses[idx].lessons.push({
+      // 获取课程对象，确保lessons存在且是对象格式
+      const course = courses[idx];
+      if (!course.lessons) {
+        course.lessons = { numOfLessonsAdded: 0 };
+      }
+      
+      // 生成新的课程ID：当前课程数量 + 1
+      const newLessonId = course.lessons.numOfLessonsAdded + 1;
+      
+      // 创建新的课程对象
+      const newLesson = {
         startTime,
         endTime,
         teacher: editingLesson.teacher.trim(),
@@ -251,8 +261,14 @@ Page({
         minCount,
         maxCount,
         bookedCount: 0,
-        students: []
-      });
+      };
+      
+      // 将新课程添加到lessons对象中，使用生成的ID作为键
+      course.lessons[newLessonId] = newLesson;
+      
+      // 更新课程数量计数器
+      course.lessons.numOfLessonsAdded = newLessonId;
+      
       this.setData({
         courses,
         editingLesson: {
