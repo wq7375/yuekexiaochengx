@@ -57,7 +57,7 @@ Page({
       compressed: true,
       maxDuration: 60,
       success: res => {
-        const filePath = res.tempFilePath; // ✅ 修复错误：不是数组
+        const filePath = res.tempFilePath;
         const cloudPath = "teachers/video_" + Date.now() + "_" + Math.floor(Math.random() * 1000) + ".mp4";
 
         wx.showLoading({ title: '上传视频中...' });
@@ -108,40 +108,57 @@ Page({
       name,
       intro,
       skills,
-      video,
-      createTime: db.serverDate() // ✅ 使用云端时间更准确
+      video
     };
+
+    // 如果是编辑模式，添加更新时间
+    if (editId) {
+      data.updateTime = db.serverDate();
+    } else {
+      data.createTime = db.serverDate();
+    }
 
     wx.showLoading({ title: editId ? '更新中...' : '添加中...' });
 
-    const callback = () => {
-      wx.hideLoading();
-      wx.showToast({ title: editId ? '更新成功' : '添加成功' });
-      this.setData({
-        form: {
-          avatar: '',
-          name: '',
-          intro: '',
-          skillsStr: '',
-          skills: [],
-          video: '',
-          editId: null
+    if (editId) {
+      // 更新 - 使用云函数
+      wx.cloud.callFunction({
+        name: 'updateTeacher',
+        data: {
+          id: editId,
+          data: data
+        },
+        success: (res) => {
+          if (res.result.success) {
+            wx.hideLoading();
+            wx.showToast({ title: '更新成功' });
+            this.resetForm();
+            this.getTeachers();
+          } else {
+            wx.hideLoading();
+            wx.showToast({ title: '更新失败: ' + res.result.error, icon: 'none' });
+          }
+        },
+        fail: (err) => {
+          wx.hideLoading();
+          wx.showToast({ title: '更新失败', icon: 'none' });
+          console.error('updateTeacher fail', err);
         }
       });
-      this.getTeachers();
-    };
-
-    if (editId) {
-      db.collection('teachers').doc(editId).update({
-        data,
-        success: callback,
-        fail: () => wx.showToast({ title: '更新失败', icon: 'none' })
-      });
     } else {
+      // 新增 - 保持不变
       db.collection('teachers').add({
         data,
-        success: callback,
-        fail: () => wx.showToast({ title: '添加失败', icon: 'none' })
+        success: () => {
+          wx.hideLoading();
+          wx.showToast({ title: '添加成功' });
+          this.resetForm();
+          this.getTeachers();
+        },
+        fail: () => {
+          wx.hideLoading();
+          wx.showToast({ title: '添加失败', icon: 'none' });
+        }
       });
     }
   },
@@ -164,16 +181,48 @@ Page({
 
   onDeleteTeacher(e) {
     const id = e.currentTarget.dataset.id;
-    wx.showLoading({ title: '删除中...' });
-    db.collection('teachers').doc(id).remove({
-      success: () => {
-        wx.hideLoading();
-        wx.showToast({ title: '已删除' });
-        this.getTeachers();
-      },
-      fail: () => {
-        wx.hideLoading();
-        wx.showToast({ title: '删除失败', icon: 'none' });
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后不可恢复，确定删除？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '删除中...' });
+          // 调用云函数删除
+          wx.cloud.callFunction({
+            name: 'deleteTeacher',
+            data: { id },
+            success: (res) => {
+              if (res.result.success) {
+                wx.hideLoading();
+                wx.showToast({ title: '已删除' });
+                this.getTeachers();
+              } else {
+                wx.hideLoading();
+                wx.showToast({ title: '删除失败: ' + res.result.error, icon: 'none' });
+              }
+            },
+            fail: (err) => {
+              wx.hideLoading();
+              wx.showToast({ title: '删除失败', icon: 'none' });
+              console.error('deleteTeacher fail', err);
+            }
+          });
+        }
+      }
+    });
+  },
+  
+  // 重置表单
+  resetForm() {
+    this.setData({
+      form: {
+        avatar: '',
+        name: '',
+        intro: '',
+        skillsStr: '',
+        skills: [],
+        video: '',
+        editId: null
       }
     });
   }
