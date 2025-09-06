@@ -96,30 +96,24 @@ Page({
 
   onSubmit() {
     let { avatar, name, intro, skillsStr, video, editId } = this.data.form;
-
+  
     if (!name) {
       wx.showToast({ title: '请填写姓名', icon: 'none' });
       return;
     }
-
+  
     let skills = skillsStr.split(/[，,]/).map(s => s.trim()).filter(Boolean);
-    let data = {
-      avatar,
-      name,
-      intro,
-      skills,
-      video
-    };
-
-    // 如果是编辑模式，添加更新时间
-    if (editId) {
-      data.updateTime = db.serverDate();
-    } else {
-      data.createTime = db.serverDate();
-    }
-
+    
+    // 准备更新数据，只包含需要更新的字段
+    let data = {};
+    if (avatar) data.avatar = avatar;
+    if (name) data.name = name;
+    if (intro) data.intro = intro;
+    if (skills && skills.length > 0) data.skills = skills;
+    if (video !== undefined) data.video = video;
+  
     wx.showLoading({ title: editId ? '更新中...' : '添加中...' });
-
+  
     if (editId) {
       // 更新 - 使用云函数
       wx.cloud.callFunction({
@@ -158,7 +152,24 @@ Page({
         fail: () => {
           wx.hideLoading();
           wx.showToast({ title: '添加失败', icon: 'none' });
-        }
+
+          data.createTime = db.serverDate();
+    
+          db.collection('teachers').add({
+            data,
+            success: () => {
+              wx.hideLoading();
+              wx.showToast({ title: '添加成功' });
+              this.resetForm();
+              this.getTeachers();
+            },
+            fail: () => {
+              wx.hideLoading();
+              wx.showToast({ title: '添加失败', icon: 'none' });
+            } })
+          }
+
+      
       });
     }
   },
