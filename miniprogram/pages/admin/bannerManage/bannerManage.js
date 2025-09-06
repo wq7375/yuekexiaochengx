@@ -31,22 +31,32 @@ Page({
         const cloudPath = 'banners/' + Date.now() + '-' + Math.floor(Math.random() * 1000) + '.jpg';
 
         wx.showLoading({ title: '上传中...' });
+        
+        // 先上传图片到云存储
         wx.cloud.uploadFile({
           cloudPath,
           filePath,
           success: uploadRes => {
             const fileID = uploadRes.fileID;
-            db.collection('banners').add({
+            
+            // 调用云函数添加轮播图记录
+            wx.cloud.callFunction({
+              name: 'addBanner',
               data: {
-                image: fileID, // ✅ 确保字段名为 image
-                createdAt: db.serverDate() // ✅ 使用云端时间
+                cloudPath: cloudPath,
+                fileID: fileID
               },
-              success: () => {
-                wx.showToast({ title: '上传成功' });
-                this.getBanners(); // ✅ 上传后刷新列表
+              success: res => {
+                if (res.result.success) {
+                  wx.showToast({ title: '上传成功' });
+                  this.getBanners(); // 上传后刷新列表
+                } else {
+                  wx.showToast({ title: '保存失败: ' + res.result.error, icon: 'none' });
+                }
               },
-              fail: () => {
+              fail: err => {
                 wx.showToast({ title: '保存失败', icon: 'none' });
+                console.error('addBanner fail', err);
               },
               complete: () => {
                 wx.hideLoading();
@@ -70,13 +80,21 @@ Page({
       content: '确定要删除该轮播图吗？',
       success: res => {
         if (res.confirm) {
-          db.collection('banners').doc(id).remove({
-            success: () => {
-              wx.showToast({ title: '已删除' });
-              this.getBanners();
+          // 调用云函数删除
+          wx.cloud.callFunction({
+            name: 'deleteBanner',
+            data: { id },
+            success: res => {
+              if (res.result.success) {
+                wx.showToast({ title: '已删除' });
+                this.getBanners();
+              } else {
+                wx.showToast({ title: '删除失败: ' + res.result.error, icon: 'none' });
+              }
             },
-            fail: () => {
+            fail: err => {
               wx.showToast({ title: '删除失败', icon: 'none' });
+              console.error('deleteBanner fail', err);
             }
           });
         }
