@@ -95,11 +95,11 @@
   margin-bottom: 10rpx;
 }
 .lesson-info {
-  font-size: 26rpx;
-  margin-bottom: 6rpx;
+  font-size: 32rpx;
+  margin-bottom: 10rpx;
 }
 .lesson-label {
-  color: #999;
+  color: #777;
 }
 .btn-bar {
   margin-top: 12rpx;
