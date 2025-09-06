@@ -50,21 +50,23 @@ Page({
     const courseList = allCourses.filter(
       c => c.type == activeType && Array.isArray(c.lessons) && c.lessons.length > 0
     );
-    this.setData({ courseList }, () => {
-      console.log('courseList:', JSON.stringify(this.data.courseList));
-       console.log('课表数据:', this.data.courseList);
-this.data.courseList.forEach(item => {
-  console.log('日期:', item.date, 'lessons:', item.lessons);
-});
-      console.log('游客端课表内容:', this.data.courseList);
+    this.setData({ courseList });
+    /*
+    console.log('courseList:', JSON.stringify(this.data.courseList));
+    console.log('课表数据:', this.data.courseList);
+    this.data.courseList.forEach(item => {
+      console.log('日期:', item.date, 'lessons:', item.lessons);
     });
+    console.log('游客端课表内容:', this.data.courseList);
+    // */
   }
 })
-  Page.prototype.formatDate = function(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return `${date.getMonth()+1}月${date.getDate()}日`;
-  };
+
+Page.prototype.formatDate = function(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return `${date.getMonth()+1}月${date.getDate()}日`;
+};
   
 
 // wxml过滤器

@@ -31,7 +31,7 @@ exports.main = async (event, context) => {
   const isForce = action.includes('force')
   
   // 预约时写入学生信息
-  if (action.includes('book')) {
+  if (action === 'book' || action === 'forceBook') {
     // 检查是否已预约
     if (lesson.students && lesson.students.find(s => s.studentId === student.studentId)) {
       return { success: false, msg: '已预约' }
@@ -45,7 +45,7 @@ exports.main = async (event, context) => {
     lesson.bookedCount += 1
     lesson.students = lesson.students || []
     lesson.students.push(student)
-  } else if (action.includes('cancel')) {
+  } else if (action === 'cancel' || action === 'forceCancel') {
     const idx = lesson.students ? lesson.students.findIndex(s => s.studentId === student.studentId) : -1
     if (idx === -1) {
       return { success: false, msg: '未预约' }

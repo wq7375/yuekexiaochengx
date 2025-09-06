@@ -82,12 +82,18 @@ Page({
     wx.showLoading({ title: '检查权限中' })
     
     wx.cloud.callFunction({
-      name: 'checkAdminPermission',
+      name: 'login', // 改为调用 login 云函数
+      data: {
+        // 传递空参数，避免创建新用户
+        name: '',
+        phone: ''
+      },
       success: res => {
         wx.hideLoading()
-        console.log('权限检查结果:', res)
+        // console.log('login 云函数返回结果:', res)
         
-        if (res.result && res.result.isAdmin) {
+        // 根据 login 函数的返回结果判断是否是管理员
+        if (res.result && res.result.role === 'admin') {
           // 有权限，初始化页面
           this.setData({ 
             isAdmin: true,

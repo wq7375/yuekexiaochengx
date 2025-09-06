@@ -20,6 +20,7 @@ Page({
     const phone = '';
 
     // wx.redirectTo({ url: '/pages/adminHome/adminHome' }); return //本地测试，用于直接跳转admin页面
+    wx.showLoading({ title: '读取中...' });
     wx.cloud.callFunction({
       name: 'login',
       data: { name, phone },
@@ -31,9 +32,10 @@ Page({
         } else if (role === 'student') {
           wx.switchTab({ url: '/pages/studentHome/studentHome' })
         }
+        wx.hideLoading();
       },
       fail: () => {
-        wx.showToast({ title: '登录失败', icon: 'none' })
+        wx.showToast({ title: '登录失败', icon: 'none' });
       }
     })
   },
@@ -47,6 +49,7 @@ Page({
       return
     }
 
+    wx.showLoading({ title: '正在登录...' });
     wx.cloud.callFunction({
       name: 'login',
       data: { name, phone },
