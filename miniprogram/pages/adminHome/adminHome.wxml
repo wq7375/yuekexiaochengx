@@ -9,6 +9,12 @@
       </button>
     </view>
     <view class="action-item">
+      <button class="icon-btn" bindtap="goToStu">
+      <image src="/images/课程.png"></image>
+      <text>学生界面</text>
+      </button>
+    </view>
+    <view class="action-item">
       <button class="icon-btn" bindtap="goTotM">
       <image src="/images/课程.png"></image>
       <text>教师信息管理</text>
