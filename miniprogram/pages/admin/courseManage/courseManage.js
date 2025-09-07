@@ -309,8 +309,14 @@ Page({
                 const courses = [...this.data.courses];
                 const idx = courses.findIndex(c => c.date === date && c.type === type);
                 if (idx > -1) {
-                  courses[idx].lessons.splice(index, 1);
-                  this.setData({ courses });
+                  // 检查lessons对象是否存在，并且要删除的课程ID是否存在
+                  if (courses[idx].lessons && courses[idx].lessons.hasOwnProperty(id)) {
+                    delete courses[idx].lessons[id];
+                    this.setData({ courses });
+                  } else {
+                    // 可选：添加错误处理
+                    console.error('课程ID不存在:', id);
+                  }
                 }
               } else {
                 wx.showToast({ title: res.result.message || '删除失败', icon: 'none' });

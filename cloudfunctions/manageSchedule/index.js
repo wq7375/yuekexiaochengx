@@ -43,26 +43,22 @@ exports.main = async (event, context) => {
   try {
     console.log('执行操作:', operation, 'OpenID:', wxContext.OPENID);
 
-    // 调用 login 云函数检查权限
-    cloud.callFunction({
-      name: 'login', 
-      data: {
-        name: '',
-        phone: ''
-      },
-      success: res => {
-        // 根据 login 函数的返回结果判断是否是管理员
-        if (!res.result) {
-          return { success: false, message: '用户未注册' }
-        } else if (res.result.role !== "admin") {
-          return { success: false, message: '无管理员权限' }
-        }
-      },
-      fail: err => {
-        console.error('权限检查失败:', err)
-        wx.showToast({ title: '权限检查失败', icon: 'none' })
-      }
-    })
+    // 直接查询people集合检查权限，避免云函数调用云函数（血的教训）
+    const userRes = await db.collection('people') 
+      .where({ 
+        _openid: wxContext.OPENID 
+      }) 
+      .get() 
+     
+    if (userRes.data.length === 0) { 
+      return { success: false, message: '用户未注册' } 
+    } 
+     
+    const userInfo = userRes.data[0] 
+    // 根据role字段判断是否为管理员 
+    if (userInfo.role !== 'admin') { 
+      return { success: false, message: '无管理员权限' } 
+    }
     
     // 根据操作类型执行不同逻辑
     switch (operation) {
@@ -172,7 +168,7 @@ async function saveSchedule(data) {
     .where({ weekStart: _.in([weekStart, sundayAnchorStr]) })
     .limit(1)
     .get()
-  
+
   if (res.data.length > 0) {
     // 更新现有文档
     await db.collection('schedules').doc(res.data[0]._id).update({
@@ -227,6 +223,8 @@ async function deleteLesson(data) {
   }
   
   // 更新数据库
+  console.log('230行')
+  console.log(doc._id)
   await db.collection('schedules').doc(doc._id).update({
     data: { courses }
   })
