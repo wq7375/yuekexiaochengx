@@ -73,24 +73,33 @@ exports.main = async (event, context) => {
     })
     
     console.log('添加学生后学生列表:', lesson.students)
-  } else if (action === 'cancel' || action === 'forceCancel') {
-    // 减少预约人数
-    lesson.bookedCount -= 1
-    if (lesson.bookedCount < 0) lesson.bookedCount = 0
-    
-    // 从学生列表中移除学生
+  // 在updateSchedule云函数中修改取消逻辑
+} else if (action === 'cancel' || action === 'forceCancel') {
+  // 减少预约人数
+  lesson.bookedCount -= 1
+  if (lesson.bookedCount < 0) lesson.bookedCount = 0
+  
+  // 从学生列表中移除学生
+  if (student && student.studentId) {
     const studentIndex = lesson.students.findIndex(s => s.studentId === student.studentId)
     if (studentIndex >= 0) {
       lesson.students.splice(studentIndex, 1)
       console.log('移除学生后学生列表:', lesson.students)
     } else {
       console.log('未找到要移除的学生:', student.studentId)
+      // 即使没有找到学生，也继续执行（适用于强制取消）
+      if (isForce) {
+        console.log('强制取消：继续执行即使未找到学生')
+      }
     }
   } else {
-    console.log('无效的操作类型:', action)
-    return { success: false, msg: '无效的操作类型' }
+    console.log('学生信息不完整，无法移除')
+    // 即使学生信息不完整，也继续执行（适用于强制取消）
+    if (isForce) {
+      console.log('强制取消：继续执行即使学生信息不完整')
+    }
   }
-
+}
   // 更新整个courses数组
   try {
     await db.collection('schedules').doc(doc._id).update({ 

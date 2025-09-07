@@ -27,9 +27,10 @@
       <view class="student-item">
         <text class="student-name">{{stu.name || '未知学生'}}</text>
         <button class="cancel-btn" size="mini"
-                data-lesson-idx="{{lessonIdx}}"
-                data-stu-idx="{{stuIdx}}"
-                bindtap="forceCancel">强制取消</button>
+        data-lesson-idx="{{lessonIdx}}"
+        data-stu-idx="{{stuIdx}}"
+        bindtap="forceCancel">强制取消</button>
+
       </view>
     </block>
     <text wx:if="{{!lesson.students || lesson.students.length==0}}" class="empty-tip">暂无预约</text>
@@ -38,8 +39,8 @@
 
         <view class="force-book-area">
           <button class="force-book-btn" size="mini"
-                  data-lesson-idx="{{lesson._id}}"
-                  bindtap="openForceBookDialog">强制预约</button>
+        data-lesson-idx="{{lessonIdx}}"
+        bindtap="openForceBookDialog">强制预约</button>
         </view>
       </view>
     </block>

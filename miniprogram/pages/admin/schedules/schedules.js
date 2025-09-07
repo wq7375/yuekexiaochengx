@@ -236,6 +236,9 @@ updateLessons() {
   // === 强制预约相关 ===
   openForceBookDialog(e) {
     const lessonIdx = e.currentTarget.dataset.lessonIdx;
+    const lesson = this.data.lessons[lessonIdx] || {};
+    const lessonId = lesson._id; // 获取课时的_id
+    
     // 默认选择第一个学生和卡
     let cardList = [];
     if (this.data.studentList.length > 0) {
@@ -243,7 +246,7 @@ updateLessons() {
     }
     this.setData({
       forceBookDialogVisible: true,
-      forceBookLessonIdx: lessonIdx,
+      forceBookLessonId: lessonId, // 存储课时的_id
       selectedStudentIdx: 0,
       cardList,
       selectedCardIdx: 0
@@ -290,132 +293,199 @@ updateLessons() {
     this.setData({ selectedCardIdx: Number(e.detail.value) });
   },
 
-  submitForceBook() {
-    const lessonIdx = this.data.forceBookLessonIdx;
-    const student = this.data.studentList[this.data.selectedStudentIdx];
-    const card = this.data.cardList[this.data.selectedCardIdx];
-  
-    if (!student) {
-      wx.showToast({ title: '请选择学生', icon: 'none' });
-      return;
-    }
-    if (!card) {
-      wx.showToast({ title: '请选择卡', icon: 'none' });
-      return;
-    }
-  
-    const lesson = this.data.lessons[lessonIdx] || {};
-  
-    wx.cloud.callFunction({
-      name: 'reserveClass',
-      data: {
-        studentId: student._id,
-        cardLabel: card.label,
-        weekStart: this.data.weekStart,
-        type: this.data.selectedType,
-        date: this.data.selectedDate,
-        lessonIndex: lessonIdx,
-        action: 'reserve',
-        isForce: true
-      },
-      success: res => {
-        if (res.result && res.result.success) {
-          wx.cloud.callFunction({
-            name: 'updateSchedule',
-            data: {
-              weekStart: this.data.weekStart,
-              type: this.data.selectedType,
-              date: this.data.selectedDate,
-              lessonIndex: lessonIdx,
-              action: 'forceBook',
-              student: {
-                studentId: student._id,
-                name: student.name,
-                cardLabel: card.label
-              }
-            },
-            success: res2 => {
-              if (res2.result && res2.result.success) {
-                wx.showToast({ title: '已强制预约' });
-                this.closeForceBookDialog();
-                this.initWeek();
-              } else {
-                wx.showToast({ title: (res2.result && res2.result.msg) || '强制预约失败', icon: 'none' });
-                this.closeForceBookDialog();
-              }
-            },
-            fail: () => {
-              wx.showToast({ title: '强制预约失败', icon: 'none' });
+ // 强制预约提交
+submitForceBook() {
+  const lessonId = this.data.forceBookLessonId; // 使用课时的_id
+  const student = this.data.studentList[this.data.selectedStudentIdx];
+  const card = this.data.cardList[this.data.selectedCardIdx];
+
+  if (!student) {
+    wx.showToast({ title: '请选择学生', icon: 'none' });
+    return;
+  }
+  if (!card) {
+    wx.showToast({ title: '请选择卡', icon: 'none' });
+    return;
+  }
+
+  wx.cloud.callFunction({
+    name: 'reserveClass',
+    data: {
+      studentId: student._id,
+      cardLabel: card.label,
+      weekStart: this.data.weekStart,
+      type: this.data.selectedType,
+      date: this.data.selectedDate,
+      lessonIndex: lessonId, // 使用课时的_id
+      action: 'reserve',
+      isForce: true
+    },
+    success: res => {
+      if (res.result && res.result.success) {
+        wx.cloud.callFunction({
+          name: 'updateSchedule',
+          data: {
+            weekStart: this.data.weekStart,
+            type: this.data.selectedType,
+            date: this.data.selectedDate,
+            lessonIndex: lessonId, // 使用课时的_id
+            action: 'forceBook',
+            student: {
+              studentId: student._id,
+              name: student.name,
+              cardLabel: card.label
+            }
+          },
+          success: res2 => {
+            if (res2.result && res2.result.success) {
+              wx.showToast({ title: '已强制预约' });
+              this.closeForceBookDialog();
+              this.initWeek();
+            } else {
+              wx.showToast({ title: (res2.result && res2.result.msg) || '强制预约失败', icon: 'none' });
               this.closeForceBookDialog();
             }
-          });
-        } else {
-          wx.showToast({ title: (res.result && res.result.msg) || '卡次数不足或已过期', icon: 'none' });
-          this.closeForceBookDialog();
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '强制预约失败', icon: 'none' });
+          },
+          fail: () => {
+            wx.showToast({ title: '强制预约失败', icon: 'none' });
+            this.closeForceBookDialog();
+          }
+        });
+      } else {
+        wx.showToast({ title: (res.result && res.result.msg) || '卡次数不足或已过期', icon: 'none' });
         this.closeForceBookDialog();
       }
-    });
-  },
+    },
+    fail: () => {
+      wx.showToast({ title: '强制预约失败', icon: 'none' });
+      this.closeForceBookDialog();
+    }
+  });
+},
 
   // === 强制取消，同原逻辑，兼容实际 weekStart ===
-  forceCancel(e) {
-    const lessonIdx = e.currentTarget.dataset.lessonIdx;
-    const stuIdx = e.currentTarget.dataset.stuIdx;
-    const lesson = this.data.lessons[lessonIdx] || {};
-    const student = (lesson.students || [])[stuIdx];
-  
-    if (!student) {
-      wx.showToast({ title: '未找到该学员', icon: 'none' });
-      return;
-    }
-  
-    wx.cloud.callFunction({
-      name: 'reserveClass',
-      data: {
-        studentId: student.studentId,
-        cardLabel: student.cardLabel || '',
-        weekStart: this.data.weekStart,
-        type: this.data.selectedType,
-        date: this.data.selectedDate,
-        lessonIndex: lessonIdx,
-        action: 'cancel',
-        isForce: true
-      },
-      success: res => {
-        if (res.result && res.result.success) {
-          wx.cloud.callFunction({
-            name: 'updateSchedule',
-            data: {
-              weekStart: this.data.weekStart,
-              type: this.data.selectedType,
-              date: this.data.selectedDate,
-              lessonIndex: lessonIdx,
-              action: 'forceCancel',
-              student: student
-            },
-            success: res2 => {
-              if (res2.result && res2.result.success) {
-                wx.showToast({ title: '已强制取消' });
-                this.initWeek();
-              } else {
-                wx.showToast({ title: (res2.result && res2.result.msg) || '强制取消失败', icon: 'none' });
-              }
-            },
-            fail: () => {
-              wx.showToast({ title: '强制取消失败', icon: 'none' });
-            }
-          });
-        } else {
-          wx.showToast({ title: (res.result && res.result.msg) || '强制取消失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '强制取消失败', icon: 'none' });
-      }
-    });
+  // 在schedule.js中修改forceCancel方法
+// 强制取消
+forceCancel(e) {
+  const lessonIdx = e.currentTarget.dataset.lessonIdx;
+  const stuIdx = e.currentTarget.dataset.stuIdx;
+  const lesson = this.data.lessons[lessonIdx] || {};
+  const student = (lesson.students || [])[stuIdx];
+
+  if (!student) {
+    wx.showToast({ title: '未找到该学员', icon: 'none' });
+    return;
   }
+
+  // 使用课时的_id而不是数组索引
+  const lessonId = lesson._id;
+  
+  wx.showLoading({ title: '处理中...' });
+
+  wx.cloud.callFunction({
+    name: 'reserveClass',
+    data: {
+      studentId: student.studentId,
+      cardLabel: student.cardLabel || '',
+      weekStart: this.data.weekStart,
+      type: this.data.selectedType,
+      date: this.data.selectedDate,
+      lessonIndex: lessonId, // 使用课时的_id
+      action: 'cancel',
+      isForce: true
+    },
+    success: res => {
+      wx.hideLoading();
+      if (res.result && res.result.success) {
+        wx.cloud.callFunction({
+          name: 'updateSchedule',
+          data: {
+            weekStart: this.data.weekStart,
+            type: this.data.selectedType,
+            date: this.data.selectedDate,
+            lessonIndex: lessonId, // 使用课时的_id
+            action: 'forceCancel',
+            student: student
+          },
+          success: res2 => {
+            if (res2.result && res2.result.success) {
+              wx.showToast({ title: '已强制取消' });
+              this.initWeek();
+            } else {
+              wx.showToast({ 
+                title: (res2.result && res2.result.msg) || '强制取消失败', 
+                icon: 'none' 
+              });
+              this.initWeek();
+            }
+          },
+          fail: () => {
+            wx.showToast({ title: '强制取消失败', icon: 'none' });
+            this.initWeek();
+          }
+        });
+      } else {
+        // 即使reserveClass失败，也尝试更新课表
+        wx.cloud.callFunction({
+          name: 'updateSchedule',
+          data: {
+            weekStart: this.data.weekStart,
+            type: this.data.selectedType,
+            date: this.data.selectedDate,
+            lessonIndex: lessonId, // 使用课时的_id
+            action: 'forceCancel',
+            student: student
+          },
+          success: res2 => {
+            if (res2.result && res2.result.success) {
+              wx.showToast({ title: '已强制取消' });
+              this.initWeek();
+            } else {
+              wx.showToast({ 
+                title: (res2.result && res2.result.msg) || '强制取消失败', 
+                icon: 'none' 
+              });
+              this.initWeek();
+            }
+          },
+          fail: () => {
+            wx.showToast({ title: '强制取消失败', icon: 'none' });
+            this.initWeek();
+          }
+        });
+      }
+    },
+    fail: () => {
+      wx.hideLoading();
+      // 即使reserveClass失败，也尝试更新课表
+      wx.cloud.callFunction({
+        name: 'updateSchedule',
+        data: {
+          weekStart: this.data.weekStart,
+          type: this.data.selectedType,
+          date: this.data.selectedDate,
+          lessonIndex: lessonId, // 使用课时的_id
+          action: 'forceCancel',
+          student: student
+        },
+        success: res2 => {
+          if (res2.result && res2.result.success) {
+            wx.showToast({ title: '已强制取消' });
+            this.initWeek();
+          } else {
+            wx.showToast({ 
+              title: (res2.result && res2.result.msg) || '强制取消失败', 
+              icon: 'none' 
+            });
+            this.initWeek();
+          }
+        },
+        fail: () => {
+          wx.showToast({ title: '强制取消失败', icon: 'none' });
+          this.initWeek();
+        }
+      });
+    }
+  });
+}
 });

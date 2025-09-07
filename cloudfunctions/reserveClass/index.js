@@ -96,29 +96,47 @@ exports.main = async (event) => {
       return { success: true, LogInfo: logging };
     }
 
-    if (action === 'cancel') {
-      if (existBooking.data.length === 0) {
-        console.warn('未找到预约记录:', studentId, courseDate, lessonIndex);
-        return { success: false, msg: '未预约该课程', LogInfo: logging };
-      }
+    // 在reserveClass云函数中修改取消预约部分
+if (action === 'cancel' || action === 'forceCancel') {
+  // 放宽查询条件，不限制status，以便找到所有相关记录
+  const existBooking = await db.collection('booking').where({
+    studentId, 
+    weekStart, 
+    courseType, 
+    courseDate, 
+    lessonIndex
+    // 移除status: 1的限制，以便找到可能被标记为取消的记录
+  }).get();
 
-      // 删除预约记录
-      await db.collection('booking').where({
-        studentId, weekStart, courseType, courseDate, lessonIndex, status: 1
-      }).remove();
-
-      // 次卡退回次数
-      if (isCountCard) {
-        await db.collection('people').where({ _id: studentId }).update({
-          data: {
-            [`cards.${cardIdx}.remainCount`]: _.inc(1)
-          }
-        });
-      }
-
-      console.log('取消成功:', studentId, courseDate, lessonIndex);
-      return { success: true, LogInfo: logging };
+  if (existBooking.data.length === 0) {
+    console.warn('未找到预约记录:', studentId, courseDate, lessonIndex);
+    
+    // 即使没有找到预约记录，也尝试更新课表（适用于强制取消）
+    if (isForce) {
+      console.log('强制取消：即使没有预约记录也继续');
+      // 这里不返回错误，继续执行后续操作
+    } else {
+      return { success: false, msg: '未预约该课程', LogInfo: logging };
     }
+  } else {
+    // 删除找到的所有相关记录（可能有多个）
+    for (const booking of existBooking.data) {
+      await db.collection('booking').doc(booking._id).remove();
+    }
+
+    // 次卡退回次数
+    if (isCountCard) {
+      await db.collection('people').where({ _id: studentId }).update({
+        data: {
+          [`cards.${cardIdx}.remainCount`]: _.inc(1)
+        }
+      });
+    }
+  }
+
+  console.log('取消成功:', studentId, courseDate, lessonIndex);
+  return { success: true, LogInfo: logging };
+}
 
     console.warn('未知操作类型:', action);
     return { success: false, msg: '未知操作类型', LogInfo: logging };
