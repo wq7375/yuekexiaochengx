@@ -202,7 +202,9 @@ Page({
     if (lessonsObj) {
       for (const key in lessonsObj) {
         if (key !== 'numOfLessonsAdded' && lessonsObj.hasOwnProperty(key)) {
-          lessonsArray.push(lessonsObj[key]);
+          const lesson = lessonsObj[key]
+          lesson["_id"] = key
+          lessonsArray.push(lesson);
         }
       }
     }

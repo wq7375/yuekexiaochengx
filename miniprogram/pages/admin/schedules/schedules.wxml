@@ -26,7 +26,7 @@
             <block wx:for="{{lesson.students}}" wx:key="studentId" wx:for-item="stu" wx:for-index="stuIdx">
               <text class="student-name">{{stu.name}}</text>
               <button class="cancel-btn" size="mini"
-                      data-lesson-idx="{{lessonIdx}}"
+                      data-lesson-idx="{{lesson._id}}"
                       data-stu-idx="{{stuIdx}}"
                       bindtap="forceCancel">强制取消</button>
             </block>
@@ -36,7 +36,7 @@
 
         <view class="force-book-area">
           <button class="force-book-btn" size="mini"
-                  data-lesson-idx="{{lessonIdx}}"
+                  data-lesson-idx="{{lesson._id}}"
                   bindtap="openForceBookDialog">强制预约</button>
         </view>
       </view>

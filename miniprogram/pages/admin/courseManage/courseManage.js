@@ -254,6 +254,7 @@ Page({
       
       // 创建新的课程对象
       const newLesson = {
+        _id: newLessonId,
         startTime,
         endTime,
         teacher: editingLesson.teacher.trim(),
