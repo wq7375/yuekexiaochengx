@@ -148,39 +148,44 @@ Page({
   },
 
   // 删除 - 修改为使用云函数
-  onDelete(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.showModal({
-      title: '确认删除',
-      content: '删除后不可恢复，确定删除？',
-      success: modalRes => {
-        if (!modalRes.confirm) return;
-        
-        // 调用云函数删除
-        wx.cloud.callFunction({
-          name: 'deletePeople',
-          data: { id },
-          success: res => {
-            if (res.result.success) {
-              wx.showToast({ title: '删除成功' });
-              this.getPeopleList();
-              // 若正在编辑这条，重置并返回列表
-              if (this.data.editingId === id) {
-                this.resetForm();
-                this.setData({ currentTab: 'list' });
-              }
-            } else {
-              wx.showToast({ title: '删除失败: ' + res.result.error, icon: 'none' });
+  // 修改onDelete方法
+onDelete(e) {
+  const id = e.currentTarget.dataset.id;
+  wx.showModal({
+    title: '确认删除',
+    content: '删除后不可恢复，确定删除？',
+    success: modalRes => {
+      if (!modalRes.confirm) return;
+      
+      // 调用云函数删除
+      wx.cloud.callFunction({
+        name: 'deletePeople',
+        data: { id },
+        success: res => {
+          if (res.result.success) {
+            wx.showToast({ title: '删除成功' });
+            this.getPeopleList();
+            // 若正在编辑这条，重置并返回列表
+            if (this.data.editingId === id) {
+              this.resetForm();
+              this.setData({ currentTab: 'list' });
             }
-          },
-          fail: err => {
-            wx.showToast({ title: '删除失败', icon: 'none' });
-            console.error('delete fail', err);
+          } else {
+            wx.showToast({ 
+              title: '删除失败: ' + (res.result.error || '未知错误'), 
+              icon: 'none' 
+            });
+            console.error('删除失败详情:', res.result);
           }
-        });
-      }
-    });
-  },
+        },
+        fail: err => {
+          wx.showToast({ title: '删除失败', icon: 'none' });
+          console.error('delete fail', err);
+        }
+      });
+    }
+  });
+},
 
   // 保存（新增/更新）- 更新部分修改为使用云函数
   onSubmit() {
@@ -198,29 +203,34 @@ Page({
     const data = { name, phone, role };
     if (role === 'student') data.cards = cards || [];
 
-    if (editingId) {
-      // 更新 - 使用云函数
-      wx.cloud.callFunction({
-        name: 'updatePeople',
-        data: {
-          id: editingId,
-          data: data
-        },
-        success: res => {
-          if (res.result.success) {
-            wx.showToast({ title: '更新成功' });
-            this.getPeopleList();
-            this.resetForm();
-            this.setData({ currentTab: 'list' });
-          } else {
-            wx.showToast({ title: '更新失败: ' + res.result.error, icon: 'none' });
-          }
-        },
-        fail: err => {
-          wx.showToast({ title: '更新失败', icon: 'none' });
-          console.error('update fail', err);
-        }
-      });
+    // 修改onSubmit方法中的更新部分
+if (editingId) {
+  // 更新 - 使用云函数
+  wx.cloud.callFunction({
+    name: 'updatePeople',
+    data: {
+      id: editingId,
+      data: data
+    },
+    success: res => {
+      if (res.result.success) {
+        wx.showToast({ title: '更新成功' });
+        this.getPeopleList();
+        this.resetForm();
+        this.setData({ currentTab: 'list' });
+      } else {
+        wx.showToast({ 
+          title: '更新失败: ' + (res.result.error || '未知错误'), 
+          icon: 'none' 
+        });
+        console.error('更新失败详情:', res.result);
+      }
+    },
+    fail: err => {
+      wx.showToast({ title: '更新失败', icon: 'none' });
+      console.error('update fail', err);
+    }
+  });
     } else {
       // 新增 - 保持不变
       db.collection('people').add({
