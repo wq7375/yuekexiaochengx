@@ -44,8 +44,27 @@ function getWeekStartStrings(weekOffset = 0) {
 // 工具：判断是否可制定下周课表（周六10点后）
 function canSetNextWeekSchedule() {
   const now = new Date();
-  return now.getDay() === 6 && now.getHours() >= 10;
-}
+  const day = now.getDay(); // 0=周日, 1=周一, ..., 6=周六
+  const hours = now.getHours();
+   // 周六10点后或周日全天都可以设置下周课表
+   return (day === 6 && hours >= 10) || day === 0;
+  }
+  function getWeekDates(weekOffset = 0) {
+    const { mondayDate } = getWeekStartStrings(weekOffset);
+    const weekNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const arr = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(mondayDate);
+      d.setDate(mondayDate.getDate() + i);
+      const date = formatDateLocal(d);
+      arr.push({
+        date,
+        day: date.slice(5), // 'MM-DD'
+        week: weekNames[i]
+      });
+    }
+    return arr;
+  }
 
 Page({
   data: {
@@ -53,6 +72,7 @@ Page({
     courses: [],
     selectedDate: '', // 当前选中日期
     selectedType: 'group',
+    weekDates:[],
     editingLesson: {
       startHour: '09',
       startMinute: '00',
@@ -141,37 +161,52 @@ Page({
     }
     this.setData({ weekOffset: 7 }, () => this.initWeek());
   },
+  
 
   // 初始化课表
-  initWeek() {
-    const { weekOffset } = this.data;
-    const { mondayStr } = getWeekStartStrings(weekOffset);
-    this.setData({ weekStart: mondayStr });
+ // 修改initWeek方法，添加详细的日志输出
+initWeek() {
+  const { weekOffset } = this.data;
+  const { mondayStr } = getWeekStartStrings(weekOffset);
+  
+  console.log('初始化周数据，周偏移:', weekOffset, '周一日期:', mondayStr);
+  
+  // 生成周日期数组
+  const weekDates = getWeekDates(weekOffset);
+  
+  this.setData({ 
+    weekStart: mondayStr,
+    weekDates 
+  });
 
-    wx.cloud.callFunction({
-      name: 'manageSchedule',
-      data: {
-        operation: 'getSchedule',
-        data: { weekOffset }
-      },
-      success: res => {
-        if (res.result.success) {
-          const data = res.result.data;
-          this.setData({
-            courses: data.courses,
-            selectedDate: data.selectedDate,
-            selectedType: data.selectedType
-          });
-        } else {
-          wx.showToast({ title: res.result.message || '课表加载失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '课表加载失败', icon: 'none' });
+  wx.cloud.callFunction({
+    name: 'manageSchedule',
+    data: {
+      operation: 'getSchedule',
+      data: { weekOffset }
+    },
+    success: res => {
+      console.log('获取课表云函数返回:', res);
+      if (res.result && res.result.success) {
+        const data = res.result.data;
+        console.log('获取到的课表数据:', data);
+        
+        this.setData({
+          courses: data.courses,
+          selectedDate: data.selectedDate,
+          selectedType: data.selectedType
+        });
+      } else {
+        console.error('获取课表失败:', res.result);
+        wx.showToast({ title: res.result.message || '课表加载失败', icon: 'none' });
       }
-    });
-  },
-
+    },
+    fail: (err) => {
+      console.error('调用云函数失败:', err);
+      wx.showToast({ title: '课表加载失败', icon: 'none' });
+    }
+  });
+},
   // 复制上周课表
   copyLastWeekSchedule() {
     const { weekOffset } = this.data;
@@ -203,11 +238,17 @@ Page({
     });
   },
 
-  // 选中某天某类型
-  selectDateType(e) {
-    const { date, type } = e.currentTarget.dataset;
-    this.setData({ selectedDate: date, selectedType: type });
-  },
+// 添加选择日期的方法
+selectDate(e) {
+  const date = e.currentTarget.dataset.date;
+  this.setData({ selectedDate: date });
+},
+
+// 修改selectDateType方法
+selectDateType(e) {
+  const { date, type } = e.currentTarget.dataset;
+  this.setData({ selectedDate: date, selectedType: type });
+},
 
   // picker选择小时或分钟
   onPickerChange(e) {

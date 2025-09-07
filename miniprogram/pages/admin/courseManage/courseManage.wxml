@@ -10,16 +10,43 @@
     </view>
 
   <!-- 日期与类型选择 -->
-  <view class="date-type-bar">
-    <scroll-view scroll-x>
-      <block wx:for="{{courses}}" wx:key="date-type">
-        <button class="date-type-btn {{selectedDate==item.date && selectedType==item.type?'active':''}}"
-          data-date="{{item.date}}" data-type="{{item.type}}" bindtap="selectDateType">
-          {{item.date}} {{item.type=='group'?'团课':'私教'}}
-        </button>
+  <!-- 日期与类型选择 -->
+<view class="date-type-bar">
+  <scroll-view scroll-x class="date-scroll" enable-flex scroll-with-animation>
+    <view class="date-row">
+      <block wx:for="{{weekDates}}" wx:key="date">
+        <view class="date-col">
+          <view 
+            class="date-btn {{selectedDate==item.date?'active':''}}"
+            data-date="{{item.date}}" 
+            bindtap="selectDate"
+          >
+            <text class="date-week">{{item.week}}</text>
+            <text class="date-day">{{item.day}}</text>
+          </view>
+          <view class="type-btns">
+            <view 
+              class="type-btn {{selectedDate==item.date && selectedType=='group'?'active':''}}"
+              data-date="{{item.date}}" 
+              data-type="group" 
+              bindtap="selectDateType"
+            >
+              团课
+            </view>
+            <view 
+              class="type-btn {{selectedDate==item.date && selectedType=='private'?'active':''}}"
+              data-date="{{item.date}}" 
+              data-type="private" 
+              bindtap="selectDateType"
+            >
+              私教
+            </view>
+          </view>
+        </view>
       </block>
-    </scroll-view>
-  </view>
+    </view>
+  </scroll-view>
+</view>
   <!-- 课程列表 -->
   <view class="lesson-list">
     <block wx:for="{{courses}}" wx:key="date-type" wx:for-item="course">

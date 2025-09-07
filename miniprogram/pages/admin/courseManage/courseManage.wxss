@@ -36,23 +36,86 @@
   font-size: 24rpx;
 }
 .date-type-bar {
-  margin-bottom: 12rpx;
-}
-.date-type-btn {
-  margin-right: 12rpx;
-  padding: 8rpx 28rpx;
+  margin-bottom: 20rpx;
+  background-color: #fff;
   border-radius: 12rpx;
-  background: #f7f7fa;
-  color: #753a88;
+  padding: 15rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.date-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.date-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.date-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 10rpx;
+  min-width: 120rpx;
+}
+
+.date-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15rpx;
+  border-radius: 10rpx;
+  background-color: #f7f7fa;
+  margin-bottom: 10rpx;
+  min-width: 100rpx;
+}
+
+.date-btn.active {
+  background-color: #753a88;
+  color: white;
+}
+
+.date-week {
+  font-size: 24rpx;
+  margin-bottom: 5rpx;
+}
+
+.date-day {
   font-size: 28rpx;
+  font-weight: bold;
 }
-.date-type-btn.active {
-  background: #753a88;
-  color: #fff;
+
+.type-btns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
 }
+
+.type-btn {
+  padding: 8rpx 15rpx;
+  border-radius: 8rpx;
+  background-color: #f0f0f0;
+  font-size: 22rpx;
+  margin: 0 3rpx;
+}
+
+.type-btn.active {
+  background-color: #753a88;
+  color: white;
+}
+
+/* 课程列表样式调整 */
 .lesson-list {
   margin-bottom: 20rpx;
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
+
 .lesson-card {
   background: #f4f1fa;
   border-radius: 12rpx;
@@ -61,11 +124,14 @@
   box-shadow: 0 2rpx 8rpx #eee;
   font-size: 26rpx;
 }
+
+/* 新增课程表单样式调整 */
 .add-lesson-form {
   background: #f7f7fa;
   border-radius: 18rpx;
   padding: 22rpx;
   margin-bottom: 28rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 .form-title {
   font-size: 28rpx;

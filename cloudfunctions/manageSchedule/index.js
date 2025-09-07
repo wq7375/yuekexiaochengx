@@ -80,24 +80,30 @@ exports.main = async (event, context) => {
 }
 
 // 获取课表
+// 在manageSchedule.js中修改getSchedule方法，添加详细日志
 async function getSchedule(data) {
-  const { weekOffset = 0 } = data
-  const { mondayStr, sundayAnchorStr, weekEndStr } = getWeekStartStrings(weekOffset)
+  const { weekOffset = 0 } = data;
+  const { mondayStr, sundayAnchorStr, weekEndStr } = getWeekStartStrings(weekOffset);
   
+  console.log('获取课表参数:', { weekOffset, mondayStr, sundayAnchorStr, weekEndStr });
+  
+  // 查询课表
   const res = await db.collection('schedules')
-    .where({ weekStart: _.in([mondayStr, sundayAnchorStr]) }) // ? 为什么要在周一和周日里找？
+    .where({ weekStart: _.in([mondayStr, sundayAnchorStr]) })
     .limit(1)
-    .get()
+    .get();
+  
+  console.log('数据库查询结果:', res);
   
   if (res.data.length === 0) {
+    console.log('未找到课表文档，生成空课表');
     // 没有文档：生成7天空壳
-    const { mondayDate } = getWeekStartStrings(weekOffset)
+    const { mondayDate } = getWeekStartStrings(weekOffset);
     const courses = []
     for (let i = 0; i < 7; i++) {
       const date = formatDateLocal(addDaysLocal(mondayDate, i))
-      courses.push({ date, type: 'group', lessons: {numOfLessonsAdded:0,} })
-      courses.push({ date, type: 'private', lessons: {numOfLessonsAdded:0,} })
-      // 属性numOfLessonsAdded用于给每个课程生成id
+      courses.push({ date, type: 'group', lessons: {numOfLessonsAdded:0} })
+      courses.push({ date, type: 'private', lessons: {numOfLessonsAdded:0} })
     }
     
     return { 
@@ -112,40 +118,47 @@ async function getSchedule(data) {
   }
   
   // 处理现有课表数据
-  let doc = res.data[0]
-  let courses = Array.isArray(doc.courses) ? doc.courses : []
+  let doc = res.data[0];
+  console.log('找到课表文档:', doc);
+  
+  let courses = Array.isArray(doc.courses) ? doc.courses : [];
+  console.log('原始课程数据:', courses);
   
   // 过滤非本周数据
-  const startTs = parseDateLocal(mondayStr).getTime()
-  const endTs = parseDateLocal(weekEndStr).getTime()
+  const startTs = parseDateLocal(mondayStr).getTime();
+  const endTs = parseDateLocal(weekEndStr).getTime();
   courses = courses.filter(c => {
-    if (!c || !c.date) return false
-    const ts = parseDateLocal(c.date).getTime()
-    return ts >= startTs && ts <= endTs
-  })
+    if (!c || !c.date) return false;
+    const ts = parseDateLocal(c.date).getTime();
+    return ts >= startTs && ts <= endTs;
+  });
+  
+  console.log('过滤后的课程数据:', courses);
   
   // 补齐缺失的日期和类型
-  const { mondayDate } = getWeekStartStrings(weekOffset)
-  const wantDates = [...Array(7)].map((_, i) => formatDateLocal(addDaysLocal(mondayDate, i)))
-  const wantTypes = ['group', 'private']
+  const { mondayDate } = getWeekStartStrings(weekOffset);
+  const wantDates = [...Array(7)].map((_, i) => formatDateLocal(addDaysLocal(mondayDate, i)));
+  const wantTypes = ['group', 'private'];
   
   for (const dateStr of wantDates) {
     for (const tp of wantTypes) {
-      const idx = courses.findIndex(x => x.date === dateStr && x.type === tp)
+      const idx = courses.findIndex(x => x.date === dateStr && x.type === tp);
       if (idx === -1) {
-        courses.push({ date: dateStr, type: tp, lessons: [] })
+        courses.push({ date: dateStr, type: tp, lessons: {numOfLessonsAdded: 0} });
       }
     }
   }
   
   // 排序
   courses.sort((a, b) => {
-    const ta = parseDateLocal(a.date).getTime()
-    const tb = parseDateLocal(b.date).getTime()
-    if (ta !== tb) return ta - tb
-    const rank = t => (t === 'group' ? 0 : 1)
-    return rank(a.type) - rank(b.type)
-  })
+    const ta = parseDateLocal(a.date).getTime();
+    const tb = parseDateLocal(b.date).getTime();
+    if (ta !== tb) return ta - tb;
+    const rank = t => (t === 'group' ? 0 : 1);
+    return rank(a.type) - rank(b.type);
+  });
+  
+  console.log('最终课程数据:', courses);
   
   return { 
     success: true, 
@@ -155,8 +168,9 @@ async function getSchedule(data) {
       selectedDate: mondayStr,
       selectedType: 'group'
     } 
-  }
+  };
 }
+
 
 // 保存课表
 async function saveSchedule(data) {
