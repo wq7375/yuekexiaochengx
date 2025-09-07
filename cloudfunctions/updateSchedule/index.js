@@ -6,12 +6,12 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
  * - weekStart: string
  * - type: 'group' | 'private'
  * - date: string
- * - lessonIndex: number
+ * - lessonIndex: string (课程ID)
  * - action: 'book' | 'forceBook' | 'cancel' | 'forceCancel'
- * - student: { studentId, name }
+ * - student: { studentId, name } (但不再使用，仅保留用于兼容性)
  */
 exports.main = async (event, context) => {
-  const { weekStart, type, date, lessonIndex, action, student } = event
+  const { weekStart, type, date, lessonIndex, action } = event // 不再需要student参数，但为兼容性保留
   const db = cloud.database()
 
   // 查询本周课表
@@ -23,43 +23,32 @@ exports.main = async (event, context) => {
   // 找到对应课程和课时
   const courseIdx = courses.findIndex(c => c.type == type && c.date == date)
   if (courseIdx === -1) return { success: false, msg: '当天无课' }
-  const lessons = courses[courseIdx].lessons
-  if (lessonIndex < 0 || lessonIndex >= lessons.length) return { success: false, msg: '课时不存在' }
-  const lesson = lessons[lessonIndex]
+  
+  const lessonsObj = courses[courseIdx].lessons
+  // 检查课程ID是否存在
+  if (!lessonsObj || !lessonsObj.hasOwnProperty(lessonIndex)) {
+    return { success: false, msg: '课时不存在' }
+  }
+  const lesson = lessonsObj[lessonIndex]
 
   // 操作逻辑
   const isForce = action.includes('force')
   
-  // 预约时写入学生信息
   if (action === 'book' || action === 'forceBook') {
-    // 检查是否已预约
-    if (lesson.students && lesson.students.find(s => s.studentId === student.studentId)) {
-      return { success: false, msg: '已预约' }
-    }
-    
     // 非强制预约时检查人数限制
     if (!isForce && lesson.bookedCount >= lesson.maxCount) {
       return { success: false, msg: '已约满' }
     }
-    
     lesson.bookedCount += 1
-    lesson.students = lesson.students || []
-    lesson.students.push(student)
   } else if (action === 'cancel' || action === 'forceCancel') {
-    const idx = lesson.students ? lesson.students.findIndex(s => s.studentId === student.studentId) : -1
-    if (idx === -1) {
-      return { success: false, msg: '未预约' }
-    }
-    lesson.students.splice(idx, 1)
     lesson.bookedCount -= 1
     if (lesson.bookedCount < 0) lesson.bookedCount = 0
   } else {
-    // 处理无效的action值
     return { success: false, msg: '无效的操作类型' }
   }
 
-  // 更新
-  courses[courseIdx].lessons = lessons
+  // 更新 - 只更新bookedCount
+  courses[courseIdx].lessons[lessonIndex] = lesson
   await db.collection('schedules').doc(doc._id).update({ data: { courses } })
   return { success: true }
 }

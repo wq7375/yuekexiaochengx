@@ -63,8 +63,8 @@ Page({
       minCount: ' ',
       maxCount: ' ',
       isLoading: true,
-    isAdmin: false,
-    errorMessage: ''
+      isAdmin: false,
+      errorMessage: ''
     },
     hours,
     minutes,
@@ -73,10 +73,11 @@ Page({
   },
 
   onLoad() {
-    this.checkEditPermission();
-    this.initWeek();
     this.checkAdminPermission();
+    this.initWeek();
+    // console.log(this.data)
   },
+
   // 检查管理员权限
   checkAdminPermission() {
     wx.showLoading({ title: '检查权限中' })
@@ -127,11 +128,6 @@ Page({
         wx.showToast({ title: '权限检查失败', icon: 'none' })
       }
     })
-  },
-
-  // 检查是否可制定下周课表
-  checkEditPermission() {
-    this.setData({ canSetNextWeek: canSetNextWeekSchedule() });
   },
 
   // 切换本周/下周课表
@@ -247,7 +243,17 @@ Page({
 
     const idx = courses.findIndex(c => c.date === selectedDate && c.type === selectedType);
     if (idx > -1) {
-      courses[idx].lessons.push({
+      // 获取课程对象，确保lessons存在且是对象格式
+      const course = courses[idx];
+      if (!course.lessons) {
+        course.lessons = { numOfLessonsAdded: 0 };
+      }
+      
+      // 生成新的课程ID：当前课程数量 + 1
+      const newLessonId = course.lessons.numOfLessonsAdded + 1;
+      
+      // 创建新的课程对象
+      const newLesson = {
         startTime,
         endTime,
         teacher: editingLesson.teacher.trim(),
@@ -255,8 +261,14 @@ Page({
         minCount,
         maxCount,
         bookedCount: 0,
-        students: []
-      });
+      };
+      
+      // 将新课程添加到lessons对象中，使用生成的ID作为键
+      course.lessons[newLessonId] = newLesson;
+      
+      // 更新课程数量计数器
+      course.lessons.numOfLessonsAdded = newLessonId;
+      
       this.setData({
         courses,
         editingLesson: {
@@ -276,7 +288,7 @@ Page({
   },
 
   onDeleteLesson(e) {
-    const { date, type, index } = e.currentTarget.dataset;
+    const { date, type, id } = e.currentTarget.dataset;
     const { weekStart } = this.data;
     
     wx.showModal({
@@ -288,7 +300,7 @@ Page({
             name: 'manageSchedule',
             data: {
               operation: 'deleteLesson',
-              data: { weekStart, date, type, lessonIndex: index }
+              data: { weekStart, date, type, lessonIndex: id }
             },
             success: (res) => {
               if (res.result.success) {
@@ -297,8 +309,14 @@ Page({
                 const courses = [...this.data.courses];
                 const idx = courses.findIndex(c => c.date === date && c.type === type);
                 if (idx > -1) {
-                  courses[idx].lessons.splice(index, 1);
-                  this.setData({ courses });
+                  // 检查lessons对象是否存在，并且要删除的课程ID是否存在
+                  if (courses[idx].lessons && courses[idx].lessons.hasOwnProperty(id)) {
+                    delete courses[idx].lessons[id];
+                    this.setData({ courses });
+                  } else {
+                    // 可选：添加错误处理
+                    console.error('课程ID不存在:', id);
+                  }
                 }
               } else {
                 wx.showToast({ title: res.result.message || '删除失败', icon: 'none' });
@@ -354,5 +372,21 @@ Page({
       title: '预约名单',
       content: names || '暂无预约'
     });
-  }
+  },
+
+  // 辅助函数，用于检查课表中是否有课
+  hasRealLessons: function(lessonsObj) {
+    if (!lessonsObj) return false;
+    
+    // 遍历对象，排除numOfLessonsAdded等非课程属性
+    for (let key in lessonsObj) {
+      if (key !== 'numOfLessonsAdded' && 
+          lessonsObj[key] && 
+          typeof lessonsObj[key] === 'object' && 
+          lessonsObj.hasOwnProperty(key)) {
+        return true;
+      }
+    }
+    return false;
+  },
 });

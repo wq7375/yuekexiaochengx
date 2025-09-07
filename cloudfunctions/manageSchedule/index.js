@@ -7,7 +7,6 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-// [保持原有的辅助函数不变]
 // 辅助函数（与前端相同的日期处理逻辑）
 function pad(n) { return String(n).padStart(2, '0') }
 function formatDateLocal(d) {
@@ -43,22 +42,22 @@ exports.main = async (event, context) => {
   
   try {
     console.log('执行操作:', operation, 'OpenID:', wxContext.OPENID);
-    
-    // 直接查询people集合检查权限，避免云函数调用云函数
-    const userRes = await db.collection('people')
-      .where({
-        _openid: wxContext.OPENID
-      })
-      .get()
-    
-    if (userRes.data.length === 0) {
-      return { success: false, message: '用户未注册' }
-    }
-    
-    const userInfo = userRes.data[0]
-    // 根据role字段判断是否为管理员
-    if (userInfo.role !== 'admin') {
-      return { success: false, message: '无管理员权限' }
+
+    // 直接查询people集合检查权限，避免云函数调用云函数（血的教训）
+    const userRes = await db.collection('people') 
+      .where({ 
+        _openid: wxContext.OPENID 
+      }) 
+      .get() 
+     
+    if (userRes.data.length === 0) { 
+      return { success: false, message: '用户未注册' } 
+    } 
+     
+    const userInfo = userRes.data[0] 
+    // 根据role字段判断是否为管理员 
+    if (userInfo.role !== 'admin') { 
+      return { success: false, message: '无管理员权限' } 
     }
     
     // 根据操作类型执行不同逻辑
@@ -80,14 +79,13 @@ exports.main = async (event, context) => {
   }
 }
 
-// [保持原有的getSchedule、saveSchedule、deleteLesson、copyLastWeek函数不变]
 // 获取课表
 async function getSchedule(data) {
   const { weekOffset = 0 } = data
   const { mondayStr, sundayAnchorStr, weekEndStr } = getWeekStartStrings(weekOffset)
   
   const res = await db.collection('schedules')
-    .where({ weekStart: _.in([mondayStr, sundayAnchorStr]) })
+    .where({ weekStart: _.in([mondayStr, sundayAnchorStr]) }) // ? 为什么要在周一和周日里找？
     .limit(1)
     .get()
   
@@ -97,8 +95,9 @@ async function getSchedule(data) {
     const courses = []
     for (let i = 0; i < 7; i++) {
       const date = formatDateLocal(addDaysLocal(mondayDate, i))
-      courses.push({ date, type: 'group', lessons: [] })
-      courses.push({ date, type: 'private', lessons: [] })
+      courses.push({ date, type: 'group', lessons: {numOfLessonsAdded:0,} })
+      courses.push({ date, type: 'private', lessons: {numOfLessonsAdded:0,} })
+      // 属性numOfLessonsAdded用于给每个课程生成id
     }
     
     return { 
@@ -169,7 +168,7 @@ async function saveSchedule(data) {
     .where({ weekStart: _.in([weekStart, sundayAnchorStr]) })
     .limit(1)
     .get()
-  
+
   if (res.data.length > 0) {
     // 更新现有文档
     await db.collection('schedules').doc(res.data[0]._id).update({
@@ -209,13 +208,23 @@ async function deleteLesson(data) {
   }
   
   // 删除指定课程
-  if (courses[courseIndex].lessons && courses[courseIndex].lessons.length > lessonIndex) {
-    courses[courseIndex].lessons.splice(lessonIndex, 1)
+  if (courses[courseIndex].lessons) {
+    const lessonsObj = courses[courseIndex].lessons;
+    
+    // 检查要删除的课程ID是否存在
+    if (lessonsObj.hasOwnProperty(lessonIndex) && lessonIndex !== "numOfLessonsAdded") {
+      // 使用delete操作符删除指定课程
+      delete lessonsObj[lessonIndex];
+    } else {
+      return { success: false, message: '课程ID不存在' }
+    }
   } else {
-    return { success: false, message: '课程索引错误' }
+    return { success: false, message: '课程列表不存在' }
   }
   
   // 更新数据库
+  console.log('230行')
+  console.log(doc._id)
   await db.collection('schedules').doc(doc._id).update({
     data: { courses }
   })
@@ -226,7 +235,7 @@ async function deleteLesson(data) {
 // 复制上周课表
 async function copyLastWeek(data) {
   const { weekOffset } = data
-  const { mondayStr: targetWeekStart } = getWeekStartStrings(weekOffset)
+  const { mondayStr: targetWeekStart } = getWeekStartStrings(weekOffset) 
   const { mondayStr: lastWeekStart, sundayAnchorStr: lastWeekSundayAnchor } = getWeekStartStrings(weekOffset - 7)
   
   // 获取上周课表
@@ -256,11 +265,18 @@ async function copyLastWeek(data) {
   
   // 清空预约信息
   oldCourses.forEach(c => {
-    (c.lessons || []).forEach(l => {
-      l.bookedCount = 0
-      l.students = []
-    })
-  })
+    // 遍历oldCourses数组中的每一个课程项(c)
+    const lessonsObj = c.lessons || {};
+    
+    for (const lessonId in lessonsObj) {
+      // 排除特殊的numOfLessonsAdded属性和原型链上的属性
+      if (lessonId === 'numOfLessonsAdded' || !lessonsObj.hasOwnProperty(lessonId)) continue;
+      
+      const lesson = lessonsObj[lessonId];
+      lesson.bookedCount = 0; // 将当前课程的已预约人数重置为0
+      lesson.students = []; // 将当前课程的学生列表清空
+    }
+  });
   
   // 补齐缺失的日期和类型
   const dates = [...Array(7)].map((_, i) => formatDateLocal(addDaysLocal(targetMonday, i)))
@@ -268,7 +284,7 @@ async function copyLastWeek(data) {
   for (const d of dates) {
     for (const tp of tps) {
       if (!oldCourses.find(x => x.date === d && x.type === tp)) {
-        oldCourses.push({ date: d, type: tp, lessons: [] })
+        oldCourses.push({ date: d, type: tp, lessons: {numOfLessonsAdded: 0,} })
       }
     }
   }

@@ -1,3 +1,10 @@
+.my-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20rpx 19rpx;
+  background-color: #fff;
+}
+
 .week-switch-bar {
   display: flex;
   gap: 18rpx;

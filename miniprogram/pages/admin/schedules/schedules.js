@@ -196,13 +196,22 @@ Page({
   updateLessons() {
     const { courses, selectedDate, selectedType } = this.data;
     const course = courses.find(c => c.date === selectedDate && c.type === selectedType);
-    let lessons = course ? (course.lessons || []).slice() : [];
-    lessons.sort((a, b) => {
+    let lessonsObj = course ? course.lessons : {};
+    // 将lessons对象转换为数组，排除numOfLessonsAdded属性
+    let lessonsArray = [];
+    if (lessonsObj) {
+      for (const key in lessonsObj) {
+        if (key !== 'numOfLessonsAdded' && lessonsObj.hasOwnProperty(key)) {
+          lessonsArray.push(lessonsObj[key]);
+        }
+      }
+    }
+    lessonsArray.sort((a, b) => {
       const timeA = parseInt((a.startTime || '00:00').replace(':', ''), 10);
       const timeB = parseInt((b.startTime || '00:00').replace(':', ''), 10);
       return timeA - timeB;
     });
-    this.setData({ lessons });
+    this.setData({ lessons: lessonsArray });
   },
 
   // === 强制预约相关 ===
