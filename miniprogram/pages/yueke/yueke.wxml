@@ -41,32 +41,33 @@
   </scroll-view>
 
   <!-- 课程列表 -->
-  <view class="lesson-list">
-    <block wx:for="{{lessons}}" wx:key="key">
-      <view class="lesson-card" style="padding: 1rem;">
-        <view class="lesson-time-and-status" style="display:flex; flex-direction:row; margin-right: 5%; align-items: center;">
-          <view class="lesson-time" style="flex: 1; font-size: large;">
-            {{item.startTime}} - {{item.endTime}}
-          </view>
-          <view class="lesson-status" style="flex: 1; display: contents;" wx:if="{{item.hasBooked}}">
-            <radio value="{{radioValue}}" checked="true" />已预约
-          </view>
+  <!-- 在yueke.wxml中，确保使用正确的数据字段 -->
+<view class="lesson-list">
+  <block wx:for="{{lessons}}" wx:key="_id" wx:for-item="item" wx:for-index="index">
+    <view class="lesson-card" style="padding: 1rem;">
+      <view class="lesson-time-and-status" style="display:flex; flex-direction:row; margin-right: 5%; align-items: center;">
+        <view class="lesson-time" style="flex: 1; font-size: large;">
+          {{item.startTime}} - {{item.endTime}}
         </view>
-        <view class="lesson-info"><text class="lesson-label">老师：</text>{{item.teacher || '待定'}}</view>
-        <view class="lesson-info"><text class="lesson-label">内容：</text>{{item.content || '-'}}</view>
-        <view class="lesson-info"><text class="lesson-label">人数：</text>{{item.bookedCount}}/{{item.maxCount}}</view>
-        <view class="btn-bar">
-          <!-- 预约按钮 -->
-          <button class="book-btn" size="mini" data-index="{{index}}" bindtap="bookLesson" wx:if="{{item.canBook}}">预约</button>
-
-          <!-- 取消预约按钮 -->
-          <button class="cancel-btn" size="mini" data-index="{{index}}" bindtap="cancelLesson" wx:if="{{item.canCancel}}">取消预约</button>
-          <button class="book-btn full" size="mini" disabled wx:if="{{!item.canBook && !item.canCancel}}">
-            {{item.bookTimeTip || '已约满'}}
-          </button>
+        <view class="lesson-status" style="flex: 1; display: contents;" wx:if="{{item.hasBooked}}">
+          <radio value="{{radioValue}}" checked="true" />已预约
         </view>
       </view>
-    </block>
-    <view wx:if="{{lessons.length==0}}" class="empty-tip">当天暂无课程</view>
-  </view>
+      <view class="lesson-info"><text class="lesson-label">老师：</text>{{item.teacher || '待定'}}</view>
+      <view class="lesson-info"><text class="lesson-label">内容：</text>{{item.content || '-'}}</view>
+      <view class="lesson-info"><text class="lesson-label">人数：</text>{{item.bookedCount}}/{{item.maxCount}}</view>
+      <view class="btn-bar">
+        <!-- 预约按钮 -->
+        <button class="book-btn" size="mini" data-index="{{index}}" bindtap="bookLesson" wx:if="{{item.canBook}}">预约</button>
+
+        <!-- 取消预约按钮 -->
+        <button class="cancel-btn" size="mini" data-index="{{index}}" bindtap="cancelLesson" wx:if="{{item.canCancel}}">取消预约</button>
+        <button class="book-btn full" size="mini" disabled wx:if="{{!item.canBook && !item.canCancel}}">
+          {{item.bookTimeTip || '已约满'}}
+        </button>
+      </view>
+    </view>
+  </block>
+  <view wx:if="{{lessons.length==0}}" class="empty-tip">当天暂无课程</view>
+</view>
 </view>
