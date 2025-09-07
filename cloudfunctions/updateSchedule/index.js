@@ -6,7 +6,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
  * - weekStart: string
  * - type: 'group' | 'private'
  * - date: string
- * - lessonIndex: number
+ * - lessonIndex: string (现在是课程ID，不是数组索引)
  * - action: 'book' | 'forceBook' | 'cancel' | 'forceCancel'
  * - student: { studentId, name }
  */
@@ -23,9 +23,13 @@ exports.main = async (event, context) => {
   // 找到对应课程和课时
   const courseIdx = courses.findIndex(c => c.type == type && c.date == date)
   if (courseIdx === -1) return { success: false, msg: '当天无课' }
-  const lessons = courses[courseIdx].lessons
-  if (lessonIndex < 0 || lessonIndex >= lessons.length) return { success: false, msg: '课时不存在' }
-  const lesson = lessons[lessonIndex]
+  
+  const lessonsObj = courses[courseIdx].lessons
+  // 检查课程ID是否存在
+  if (!lessonsObj || !lessonsObj.hasOwnProperty(lessonIndex)) {
+    return { success: false, msg: '课时不存在' }
+  }
+  const lesson = lessonsObj[lessonIndex]
 
   // 操作逻辑
   const isForce = action.includes('force')
@@ -58,8 +62,8 @@ exports.main = async (event, context) => {
     return { success: false, msg: '无效的操作类型' }
   }
 
-  // 更新
-  courses[courseIdx].lessons = lessons
+  // 更新 - 直接更新对象中的特定课程
+  courses[courseIdx].lessons[lessonIndex] = lesson
   await db.collection('schedules').doc(doc._id).update({ data: { courses } })
   return { success: true }
 }
