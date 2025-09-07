@@ -21,18 +21,20 @@
         <view class="lesson-info"><text class="lesson-label">人数：</text><text>{{lesson.bookedCount}}/{{lesson.maxCount}}</text></view>
 
         <view class="lesson-info">
-          <text class="lesson-label">学生：</text>
-          <view class="student-list">
-            <block wx:for="{{lesson.students}}" wx:key="studentId" wx:for-item="stu" wx:for-index="stuIdx">
-              <text class="student-name">{{stu.name}}</text>
-              <button class="cancel-btn" size="mini"
-                      data-lesson-idx="{{lesson._id}}"
-                      data-stu-idx="{{stuIdx}}"
-                      bindtap="forceCancel">强制取消</button>
-            </block>
-            <text wx:if="{{!lesson.students || lesson.students.length==0}}" class="empty-tip">暂无预约</text>
-          </view>
-        </view>
+  <text class="lesson-label">学生：</text>
+  <view class="student-list">
+    <block wx:for="{{lesson.students}}" wx:key="studentId" wx:for-item="stu" wx:for-index="stuIdx">
+      <view class="student-item">
+        <text class="student-name">{{stu.name || '未知学生'}}</text>
+        <button class="cancel-btn" size="mini"
+                data-lesson-idx="{{lessonIdx}}"
+                data-stu-idx="{{stuIdx}}"
+                bindtap="forceCancel">强制取消</button>
+      </view>
+    </block>
+    <text wx:if="{{!lesson.students || lesson.students.length==0}}" class="empty-tip">暂无预约</text>
+  </view>
+</view>
 
         <view class="force-book-area">
           <button class="force-book-btn" size="mini"

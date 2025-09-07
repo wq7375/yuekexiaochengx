@@ -193,28 +193,45 @@ Page({
   },
 
   // 刷新课程列表（按开始时间排序）
-  updateLessons() {
-    const { courses, selectedDate, selectedType } = this.data;
-    const course = courses.find(c => c.date === selectedDate && c.type === selectedType);
-    let lessonsObj = course ? course.lessons : {};
-    // 将lessons对象转换为数组，排除numOfLessonsAdded属性
-    let lessonsArray = [];
-    if (lessonsObj) {
-      for (const key in lessonsObj) {
-        if (key !== 'numOfLessonsAdded' && lessonsObj.hasOwnProperty(key)) {
-          const lesson = lessonsObj[key]
-          lesson["_id"] = key
-          lessonsArray.push(lesson);
+  // 刷新课程列表（按开始时间排序）
+updateLessons() {
+  const { courses, selectedDate, selectedType } = this.data;
+  
+  const course = courses.find(c => c.date === selectedDate && c.type === selectedType);
+  
+  
+  let lessonsObj = course ? course.lessons : {};
+ 
+  // 将lessons对象转换为数组，排除numOfLessonsAdded属性
+  let lessonsArray = [];
+  if (lessonsObj) {
+    for (const key in lessonsObj) {
+      if (key !== 'numOfLessonsAdded' && lessonsObj.hasOwnProperty(key)) {
+        const lesson = lessonsObj[key];
+        lesson["_id"] = key;
+        
+        // 确保students字段存在且是数组
+        if (!lesson.students) {
+          lesson.students = [];
+        } else if (!Array.isArray(lesson.students)) {
+          // 如果students不是数组，尝试转换为数组
+          lesson.students = Object.values(lesson.students);
         }
+      
+        lessonsArray.push(lesson);
       }
     }
-    lessonsArray.sort((a, b) => {
-      const timeA = parseInt((a.startTime || '00:00').replace(':', ''), 10);
-      const timeB = parseInt((b.startTime || '00:00').replace(':', ''), 10);
-      return timeA - timeB;
-    });
-    this.setData({ lessons: lessonsArray });
-  },
+  }
+  
+  lessonsArray.sort((a, b) => {
+    const timeA = parseInt((a.startTime || '00:00').replace(':', ''), 10);
+    const timeB = parseInt((b.startTime || '00:00').replace(':', ''), 10);
+    return timeA - timeB;
+  });
+  
+  
+  this.setData({ lessons: lessonsArray });
+},
 
   // === 强制预约相关 ===
   openForceBookDialog(e) {
