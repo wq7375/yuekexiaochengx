@@ -22,9 +22,31 @@ exports.main = async (event, context) => {
       return { success: false, error: '无权限操作' }
     }
     
+    // 检查姓名和手机号是否已存在（排除当前记录）
+    const duplicateCheck = await db.collection('people')
+      .where({
+        name: data.name,
+        phone: data.phone,
+        _id: db.command.neq(id) // 排除当前记录
+      })
+      .get()
+    
+    if (duplicateCheck.data.length > 0) {
+      return { 
+        success: false, 
+        error: `已存在相同姓名和手机号的${duplicateCheck.data[0].role === 'admin' ? '管理员' : '学员'}：${duplicateCheck.data[0].name}` 
+      }
+    }
+    
+    // 添加更新时间戳
+    const updateData = {
+      ...data,
+      updateTime: db.serverDate()
+    }
+    
     // 执行更新操作
     const result = await db.collection('people').doc(id).update({
-      data: data
+      data: updateData
     })
     
     return { success: true, data: result }

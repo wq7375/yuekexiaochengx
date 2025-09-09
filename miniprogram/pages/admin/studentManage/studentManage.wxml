@@ -49,6 +49,11 @@
     <input class="input" placeholder="手机号" type="number" value="{{phone}}" bindinput="onPhoneInput" />
   </view>
 
+   <!-- 重复错误提示 -->
+   <view wx:if="{{duplicateError}}" class="error-tip">
+        <text>{{duplicateError}}</text>
+      </view>
+      
   <!-- 卡设置 开关 -->
   <view class="card-title" bindtap="toggleCardEditor">
     学员卡设置
@@ -112,5 +117,3 @@
 </view>
 
 </view>
-
-
