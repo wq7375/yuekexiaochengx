@@ -149,7 +149,7 @@ Page({
         }
       });
   },
-
+    
   // 切换课程类型
   switchType(e) {
     const selectedType = e.currentTarget.dataset.type;
