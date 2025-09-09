@@ -165,12 +165,6 @@ Page({
   
   // 显示下周预约
   showNextWeek() {
-    const now = new Date();
-    const day = now.getDay(); // 0是周日，6是周六
-    const hour = now.getHours();
-    
-    // 只有周六上午10点后可看下周预约
-    
     this.setData({ weekOffset: 7 });
     this.initWeek();
   },
@@ -316,20 +310,31 @@ Page({
   },
 
   // 强制预约提交
-  submitForceBook() {
-    const lessonId = this.data.forceBookLessonId; // 使用课时的_id
-    const student = this.data.studentList[this.data.selectedStudentIdx];
-    const card = this.data.cardList[this.data.selectedCardIdx];
+  // 在submitForceBook函数中添加卡片类型验证
+submitForceBook() {
+  const lessonId = this.data.forceBookLessonId;
+  const student = this.data.studentList[this.data.selectedStudentIdx];
+  const card = this.data.cardList[this.data.selectedCardIdx];
 
-    if (!student) {
-      wx.showToast({ title: '请选择学生', icon: 'none' });
-      return;
-    }
-    if (!card) {
-      wx.showToast({ title: '请选择卡', icon: 'none' });
-      return;
-    }
+  if (!student) {
+    wx.showToast({ title: '请选择学生', icon: 'none' });
+    return;
+  }
+  if (!card) {
+    wx.showToast({ title: '请选择卡', icon: 'none' });
+    return;
+  }
 
+  // 验证私教课只能使用私教卡
+  if (this.data.selectedType === 'private' && card.type !== 'private') {
+    wx.showToast({ 
+      title: '私教课只能使用私教卡预约', 
+      icon: 'none',
+      duration: 2000
+    });
+    return;
+  }
+  
     wx.cloud.callFunction({
       name: 'reserveClass',
       data: {

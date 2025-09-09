@@ -289,19 +289,26 @@ updateLessons() {
 // 预约课程
 // 在yueke.js中修改bookLesson方法
 // 在yueke.js中修改bookLesson方法
+// 在bookLesson函数中添加卡片类型验证
 bookLesson(e) {
   const index = e.currentTarget.dataset.index;
   const lesson = this.data.lessons[index];
   const lessonId = lesson._id;
   
-  const { weekStart, selectedType, selectedDate, cardLabel, userId, userName } = this.data;
+  const { weekStart, selectedType, selectedDate, cardLabel, userId, userName, userCards, cardLabelIndex } = this.data;
 
-  console.log('开始预约:', {
-    课时ID: lessonId,
-    用户ID: userId,
-    用户名: userName,
-    卡片: cardLabel
-  });
+  // 获取当前选中的卡片
+  const selectedCard = userCards[cardLabelIndex];
+  
+  // 验证私教课只能使用私教卡
+  if (selectedType === 'private' && selectedCard.type !== 'private') {
+    wx.showToast({ 
+      title: '私教课只能使用私教卡预约', 
+      icon: 'none',
+      duration: 2000
+    });
+    return;
+  }
 
   wx.showLoading({ title: '预约中...' });
   
