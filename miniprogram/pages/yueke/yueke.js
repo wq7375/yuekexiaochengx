@@ -309,6 +309,14 @@ bookLesson(e) {
     });
     return;
   }
+  if (selectedType === 'group' && selectedCard.type === 'private') {
+    wx.showToast({ 
+      title: '团课不能使用私教卡预约', 
+      icon: 'none',
+      duration: 2000
+    });
+    return;
+  }
 
   wx.showLoading({ title: '预约中...' });
   

@@ -51,6 +51,21 @@ exports.main = async (event) => {
       return { success: false, msg: '该卡已过期', LogInfo: logging };
     }
 
+    // 新增：验证卡类型与课程类型是否匹配
+    if (action === 'reserve') {
+      // 私教卡只能用于私教课
+      if (card.type === 'private' && courseType !== 'private') {
+        console.warn('私教卡不能用于团课:', cardLabel, courseType);
+        return { success: false, msg: '私教卡只能用于私教课', LogInfo: logging };
+      }
+      
+      // 团课卡只能用于团课
+      if (card.type !== 'private' && courseType === 'private') {
+        console.warn('团课卡不能用于私教课:', cardLabel, courseType);
+        return { success: false, msg: '团课卡只能用于团课', LogInfo: logging };
+      }
+    }
+
     // 检查是否已预约
     const existBooking = await db.collection('booking').where({
       studentId, weekStart, courseType, courseDate, lessonIndex, status: 1
@@ -96,47 +111,60 @@ exports.main = async (event) => {
       return { success: true, LogInfo: logging };
     }
 
-    // 在reserveClass云函数中修改取消预约部分
-if (action === 'cancel' || action === 'forceCancel') {
-  // 放宽查询条件，不限制status，以便找到所有相关记录
-  const existBooking = await db.collection('booking').where({
-    studentId, 
-    weekStart, 
-    courseType, 
-    courseDate, 
-    lessonIndex
-    // 移除status: 1的限制，以便找到可能被标记为取消的记录
-  }).get();
+    if (action === 'cancel' || action === 'forceCancel') {
+      // 放宽查询条件，不限制status，以便找到所有相关记录
+      const existBooking = await db.collection('booking').where({
+        studentId, 
+        weekStart, 
+        courseType, 
+        courseDate, 
+        lessonIndex
+        // 移除status: 1的限制，以便找到可能被标记为取消的记录
+      }).get();
 
-  if (existBooking.data.length === 0) {
-    console.warn('未找到预约记录:', studentId, courseDate, lessonIndex);
-    
-    // 即使没有找到预约记录，也尝试更新课表（适用于强制取消）
-    if (isForce) {
-      console.log('强制取消：即使没有预约记录也继续');
-      // 这里不返回错误，继续执行后续操作
-    } else {
-      return { success: false, msg: '未预约该课程', LogInfo: logging };
-    }
-  } else {
-    // 删除找到的所有相关记录（可能有多个）
-    for (const booking of existBooking.data) {
-      await db.collection('booking').doc(booking._id).remove();
-    }
-
-    // 次卡退回次数
-    if (isCountCard) {
-      await db.collection('people').where({ _id: studentId }).update({
-        data: {
-          [`cards.${cardIdx}.remainCount`]: _.inc(1)
+      if (existBooking.data.length === 0) {
+        console.warn('未找到预约记录:', studentId, courseDate, lessonIndex);
+        
+        // 即使没有找到预约记录，也尝试更新课表（适用于强制取消）
+        if (isForce) {
+          console.log('强制取消：即使没有预约记录也继续');
+          // 这里不返回错误，继续执行后续操作
+        } else {
+          return { success: false, msg: '未预约该课程', LogInfo: logging };
         }
-      });
-    }
-  }
+      } else {
+        // 新增：验证取消预约时使用的卡片与预约时是否一致
+        const bookingRecord = existBooking.data[0]; // 取第一条记录
+        if (bookingRecord.cardLabel !== cardLabel && !isForce) {
+          console.warn('取消预约时使用的卡片与预约时不一致:', 
+            bookingRecord.cardLabel, cardLabel);
+          return { 
+            success: false, 
+            msg: `取消预约需使用预约时使用的卡片: ${bookingRecord.cardLabel}`, 
+            LogInfo: logging 
+          };
+        }
 
-  console.log('取消成功:', studentId, courseDate, lessonIndex);
-  return { success: true, LogInfo: logging };
-}
+        // 删除找到的所有相关记录（可能有多个）
+        for (const booking of existBooking.data) {
+          await db.collection('booking').doc(booking._id).remove();
+        }
+
+        // 次卡退回次数 - 只有在卡片类型匹配时才退回
+        if (isCountCard && bookingRecord.cardLabel === cardLabel) {
+          await db.collection('people').where({ _id: studentId }).update({
+            data: {
+              [`cards.${cardIdx}.remainCount`]: _.inc(1)
+            }
+          });
+        } else if (isCountCard && bookingRecord.cardLabel !== cardLabel && isForce) {
+          console.warn('强制取消: 卡片不匹配，不退回次数');
+        }
+      }
+
+      console.log('取消成功:', studentId, courseDate, lessonIndex);
+      return { success: true, LogInfo: logging };
+    }
 
     console.warn('未知操作类型:', action);
     return { success: false, msg: '未知操作类型', LogInfo: logging };
