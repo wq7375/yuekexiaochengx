@@ -4,6 +4,12 @@
     <button class="type-btn {{selectedType=='private'?'active':''}}" data-type="private" bindtap="switchType">私教</button>
   </view>
 
+  <!-- 修改周切换栏，添加高亮样式 -->
+  <view class="week-switch-bar">
+   <view class="week-btn {{weekOffset==0?'active':''}}" data-offset="0" bindtap="showThisWeek">本周预约</view>
+    <view class="week-btn {{weekOffset==7?'active':''}}" data-offset="7" bindtap="showNextWeek">下周预约</view>
+  </view>
+
   <scroll-view scroll-x class="date-bar">
     <block wx:for="{{dates}}" wx:key="date" wx:for-item="d">
       <button class="date-btn {{selectedDate==d?'active':''}}" data-date="{{d}}" bindtap="selectDate">{{d}}</button>
@@ -88,5 +94,4 @@
   </view>
 </view>
 </view>
-
 

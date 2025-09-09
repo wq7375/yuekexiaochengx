@@ -98,6 +98,11 @@ Page({
     // console.log(this.data)
   },
 
+  onLoad(){
+    this.checkAdminPermission();
+    this.initWeek();
+  },
+
   // 检查管理员权限
   checkAdminPermission() {
     wx.showLoading({ title: '检查权限中' })

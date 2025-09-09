@@ -221,29 +221,104 @@ async function deleteLesson(data) {
     return { success: false, message: '未找到对应课程' }
   }
   
-  // 删除指定课程
-  if (courses[courseIndex].lessons) {
-    const lessonsObj = courses[courseIndex].lessons;
-    
-    // 检查要删除的课程ID是否存在
-    if (lessonsObj.hasOwnProperty(lessonIndex) && lessonIndex !== "numOfLessonsAdded") {
-      // 使用delete操作符删除指定课程
-      delete lessonsObj[lessonIndex];
-    } else {
-      return { success: false, message: '课程ID不存在' }
-    }
-  } else {
-    return { success: false, message: '课程列表不存在' }
+  // 获取课程信息
+  const course = courses[courseIndex]
+  const lessonsObj = course.lessons || {}
+  
+  // 检查课程是否存在
+  if (!lessonsObj.hasOwnProperty(lessonIndex) || lessonIndex === "numOfLessonsAdded") {
+    return { success: false, message: '课程ID不存在' }
   }
   
+  const lesson = lessonsObj[lessonIndex]
+  
+  // 检查课程是否已经开始
+  const now = new Date()
+  let hasStarted = false
+  
+  // 如果有开始时间，则判断课程是否已经开始
+  if (lesson.startTime) {
+    try {
+      // 解析课程日期和时间
+      const [year, month, day] = date.split('-').map(Number)
+      const [hours, minutes] = lesson.startTime.split(':').map(Number)
+      const courseDateTime = new Date(year, month - 1, day, hours, minutes)
+      
+      hasStarted = now > courseDateTime
+    } catch (err) {
+      console.error('解析课程时间出错:', err)
+      // 如果时间格式有问题，默认认为课程已开始
+      hasStarted = true
+    }
+  } else {
+    // 如果没有开始时间，使用日期判断（只比较日期部分）
+    const courseDate = new Date(date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    hasStarted = courseDate < today
+  }
+  
+  // 处理相关预约
+  if (!hasStarted) {
+    try {
+      // 查找所有相关预约
+      const bookingRes = await db.collection('booking')
+        .where({
+          weekStart: _.in([weekStart, sundayAnchorStr]),
+          courseDate: date,
+          courseType: type,
+          lessonIndex: lessonIndex,
+          status: 1 // 只处理有效预约
+        })
+        .get()
+      
+      console.log(`找到 ${bookingRes.data.length} 条相关预约记录`)
+      
+      // 对每个预约调用reserveClass强制取消
+      for (const booking of bookingRes.data) {
+        try {
+          await cloud.callFunction({
+            name: 'reserveClass',
+            data: {
+              action: 'forceCancel',
+              studentId: booking.studentId,
+              cardLabel: booking.cardLabel,
+              weekStart: booking.weekStart,
+              date: booking.courseDate,
+              type: booking.courseType,
+              lessonIndex: booking.lessonIndex,
+              isForce: true
+            }
+          })
+          console.log(`成功取消预约: ${booking.studentId}`)
+        } catch (err) {
+          console.error(`取消预约失败 (${booking.studentId}):`, err)
+          // 即使取消预约失败，也继续处理下一个
+        }
+      }
+    } catch (err) {
+      console.error('查询预约时出错:', err)
+      // 即使取消预约失败，也继续删除课程
+    }
+  } else {
+    console.log('课程已开始，保留预约记录')
+  }
+  
+  // 删除指定课程
+  delete lessonsObj[lessonIndex]
+  
   // 更新数据库
-  console.log('230行')
-  console.log(doc._id)
   await db.collection('schedules').doc(doc._id).update({
     data: { courses }
   })
   
-  return { success: true, message: '课程已删除' }
+  return { 
+    success: true, 
+    message: hasStarted ? 
+      '课程已删除（已开始课程，保留预约记录）' : 
+      '课程已删除，相关预约已取消并退还次数' 
+  }
 }
 
 // 复制上周课表
