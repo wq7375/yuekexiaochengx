@@ -1,8 +1,7 @@
 <view class="my-container">
     <view class="week-switch-bar">
       <button bindtap="showThisWeek" class="week-btn {{weekOffset==0?'active':''}}">本周课表</button>
-      <button bindtap="showNextWeek" class="week-btn {{weekOffset==7?'active':''}}" wx:if="{{canSetNextWeek}}">下周课表</button>
-      <view wx:if="{{!canSetNextWeek}}" style="color:#aaa;margin-top:12rpx;">周六上午10点后可制定下周课表</view>
+      <button bindtap="showNextWeek" class="week-btn {{weekOffset==7?'active':''}}">下周课表</button>
     </view>
     <view class="copy-bar">
       <button type="primary" bindtap="copyLastWeekSchedule">复制上周课表</button>

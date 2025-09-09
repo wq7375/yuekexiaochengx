@@ -160,10 +160,6 @@ Page({
     this.setData({ weekOffset: 0 }, () => this.initWeek());
   },
   showNextWeek() {
-    if (!this.data.canSetNextWeek) {
-      wx.showToast({ title: '周六10点后可制定下周课表', icon: 'none' });
-      return;
-    }
     this.setData({ weekOffset: 7 }, () => this.initWeek());
   },
   

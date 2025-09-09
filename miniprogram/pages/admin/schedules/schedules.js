@@ -170,10 +170,6 @@ Page({
     const hour = now.getHours();
     
     // 只有周六上午10点后可看下周预约
-    if (day !== 6 || hour < 10) {
-      wx.showToast({ title: '周六上午10点后可查看下周预约', icon: 'none' });
-      return;
-    }
     
     this.setData({ weekOffset: 7 });
     this.initWeek();
