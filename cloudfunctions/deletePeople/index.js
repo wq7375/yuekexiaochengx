@@ -30,7 +30,7 @@ exports.main = async (event, context) => {
     
     // 2. 遍历每条选课记录，更新相关数据
     for (const booking of bookings.data) {
-      console.log('处理选课记录:', booking._id, '课程日期:', booking.courseDate, '课节索引:', booking.lessonIndex)
+      console.log('处理选课记录:', booking._id, '课程日期:', booking.courseDate, '课节索引:', booking.lessonIndex, '课程类型:', booking.courseType || '未知')
       
       try {
         // 查询包含指定日期的schedule记录
@@ -44,15 +44,25 @@ exports.main = async (event, context) => {
           const schedule = schedules.data[0]
           console.log('找到课程安排文档:', schedule._id)
           
-          // 调试：输出整个schedule文档结构
-          console.log('Schedule文档结构:', JSON.stringify(schedule).substring(0, 500) + '...')
+          // 确定课程类型（如果booking中没有指定，则尝试推断）
+          let courseType = booking.courseType
+          if (!courseType) {
+            // 尝试从课程内容推断类型
+            if (booking.content && booking.content.includes('私教')) {
+              courseType = 'private'
+            } else {
+              courseType = 'group' // 默认值
+            }
+            console.log('推断课程类型为:', courseType)
+          }
           
-          // 找到对应的课程日期
+          // 找到对应的课程日期和类型
           let courseIndex = -1
           let targetCourse = null
           
           for (let i = 0; i < schedule.courses.length; i++) {
-            if (schedule.courses[i].date === booking.courseDate) {
+            if (schedule.courses[i].date === booking.courseDate && 
+                schedule.courses[i].type === courseType) {
               courseIndex = i
               targetCourse = schedule.courses[i]
               break
@@ -60,11 +70,23 @@ exports.main = async (event, context) => {
           }
           
           if (courseIndex === -1) {
-            console.log('未找到日期为', booking.courseDate, '的课程')
-            // 输出所有可用的课程日期
-            const availableDates = schedule.courses.map(c => c.date)
-            console.log('可用课程日期:', availableDates)
-            continue
+            console.log('未找到日期为', booking.courseDate, '类型为', courseType, '的课程')
+            // 尝试查找任何类型的课程（作为备选方案）
+            for (let i = 0; i < schedule.courses.length; i++) {
+              if (schedule.courses[i].date === booking.courseDate) {
+                courseIndex = i
+                targetCourse = schedule.courses[i]
+                console.log('找到备选课程，类型为:', targetCourse.type)
+                break
+              }
+            }
+            
+            if (courseIndex === -1) {
+              // 输出所有可用的课程日期和类型
+              const availableCourses = schedule.courses.map(c => ({date: c.date, type: c.type}))
+              console.log('可用课程:', availableCourses)
+              continue
+            }
           }
           
           console.log('找到课程索引:', courseIndex, '课程类型:', targetCourse.type)

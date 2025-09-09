@@ -34,7 +34,7 @@
 .lesson-time {font-size:26rpx;color:#3152c0;margin-bottom:10rpx;}
 .lesson-info {font-size:24rpx;color:#444;margin-bottom:4rpx;display:flex;align-items:center;}
 .lesson-label {color:#8aa2fa;width:80rpx;white-space: nowrap;}
-.student-list {display:flex;flex-wrap:wrap;gap:10rpx; white-space: nowrap; /* 防止换行 */}
+.student-list {display:flex;flex-wrap:wrap; gap: 10rpx;/* 防止换行 */}
 .student-name {background:#e7f1ff;padding:6rpx 18rpx;border-radius:8rpx;font-size:26rpx;color:#4b6cff;line-height: 50rpx;}
 .cancel-btn {
   height: 60rpx;
@@ -46,6 +46,7 @@
   font-size:16rpx;
   padding: 6rpx 18rpx;
 }
+
 .empty-tip {
   color:#999;
   text-align:left;
